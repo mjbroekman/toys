@@ -1,7 +1,41 @@
 #!/usr/bin/env python
 
-def pil_image(request):
-    import Image, ImageDraw
+import sys, getopt
+
+def main(argv):
+
+    x_size = 0
+    y_size = 0
+    min_land = 0
+    max_land = 0
+    output = ""
+
+    try:
+        opts, args = getopt.getopt(argv,"hx:y:m:n:o:")
+    except getopt.GetoptError:
+        print 'mk_image.py -x <image width> -y <image height> -m <max "land"> -n <min "land"> -o <outputfile>'
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-h':
+            print 'mk_image.py -x <image width> -y <image height> -m <max "land"> -n <min "land"> -o <outputfile>'
+            sys.exit()
+        elif opt in ("-o"):
+            output = arg
+        elif opt in ("-x"):
+            x_size = arg
+        elif opt in ("-x"):
+            y_size = arg
+        elif opt in ("-m"):
+            max_land = arg
+        elif opt in ("-n"):
+            min_land = arg
+
+    mk_image( output, x_size, y_size, max_land, min_land )
+
+
+def mk_image( output = "/Users/mbroekman/testimage.png" , x_size = 2048, y_size = 2048, max_land = 80, min_land = 35 ):
+    from PIL import Image, ImageDraw
 
     blue = (0,0,128)
     green = (0,250,0)
@@ -13,9 +47,27 @@ def pil_image(request):
     black = (0,0,0)
     red = (128,0,0)
 
-    size = ( 2048, 2048)
-    im = Image.new('RGB', size, blue)
-    draw = ImageDraw.Draw(im)
+    colors = (blue, green, yellow, ltbrown, dkbrown, grey, white, red, black)
+
+    mapsize = ( x_size, y_size )
+    mapimage = Image.new('RGB', mapsize, blue)
+    mapdraw = ImageDraw.Draw(mapimage)
+
+    label_pos = (10,10) # top-left position of our text
+    label = "My New World" # text to draw
+
+    mapdraw.text(label_pos, label, fill=black)
+
+    del mapdraw
+
+    mapimage.save(output, 'PNG')
+
+
+if __name__ == "__main__":
+   main(sys.argv[1:])
+
+print 'Number of arguments:', len(sys.argv), 'arguments.'
+print 'Argument List:', str(sys.argv)
 
 
 # my @bitmap = ();
