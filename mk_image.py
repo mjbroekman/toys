@@ -2,16 +2,18 @@
 
 import sys, getopt
 
-def main(argv):
+# Defaults
+debug = 0
 
-    x_size = 0
-    y_size = 0
-    min_land = 0
-    max_land = 0
-    output = ""
+def main(argv):
+    output = "testimage.png"
+    x_size = 2048
+    y_size = 2048
+    max_land = 80
+    min_land = 35
 
     try:
-        opts, args = getopt.getopt(argv,"hx:y:m:n:o:")
+        opts, args = getopt.getopt(argv,"hdx:y:m:n:o:")
     except getopt.GetoptError:
         print 'mk_image.py -x <image width> -y <image height> -m <max "land"> -n <min "land"> -o <outputfile>'
         sys.exit(2)
@@ -23,42 +25,145 @@ def main(argv):
         elif opt in ("-o"):
             output = arg
         elif opt in ("-x"):
-            x_size = arg
-        elif opt in ("-x"):
-            y_size = arg
+            x_size = int(arg)
+        elif opt in ("-y"):
+            y_size = int(arg)
         elif opt in ("-m"):
-            max_land = arg
+            max_land = int(arg)
         elif opt in ("-n"):
-            min_land = arg
+            min_land = int(arg)
+        elif opt in ("-d"):
+            global debug
+            debug += 1
 
     mk_image( output, x_size, y_size, max_land, min_land )
 
 
-def mk_image( output = "/Users/mbroekman/testimage.png" , x_size = 2048, y_size = 2048, max_land = 80, min_land = 35 ):
+def mk_image( output, x_size, y_size, max_land, min_land ):
     from PIL import Image, ImageDraw
+    import random
+
+    global debug
 
     blue = (0,0,128)
     green = (0,250,0)
     yellow = (154,205,50)
-    ltbrown = (244,164,96)
-    dkbrown = (165,42,42)
+    ltbrown = (200,164,96)
+    dkbrown = (100,42,42)
     grey = (127,127,127)
     white = (250,250,250)
     black = (0,0,0)
-    red = (128,0,0)
+    red = (255,0,0)
+    colors = [blue, green, yellow, ltbrown, dkbrown, grey, white, black]
+    color = (0,0,0)
 
-    colors = (blue, green, yellow, ltbrown, dkbrown, grey, white, red, black)
+    total_size = (x_size * y_size)
+    min_area = int(total_size * min_land / 100)
+    max_area = int(total_size * max_land / 100)
+    count = 0
 
-    mapsize = ( x_size, y_size )
+    if debug == 1:
+        print 'Creating map file ' + output + ': X size = ' + str(x_size) + ', Y size = ' + str(y_size)
+        print '\t\t Minimum landmass = ' + str(min_land) + '% (' + str(min_area) + ' land pixels)'
+        print '\t\t Maximum landmass = ' + str(max_land) + '% (' + str(max_area) + ' land pixels)'
+        print '\t\t Total pixels = ' + str(total_size)
+
+    mapsize = (x_size,y_size)
     mapimage = Image.new('RGB', mapsize, blue)
-    mapdraw = ImageDraw.Draw(mapimage)
 
-    label_pos = (10,10) # top-left position of our text
-    label = "My New World" # text to draw
+    start_x = random.randrange(x_size)
+    start_y = random.randrange(y_size)
 
-    mapdraw.text(label_pos, label, fill=black)
+    x = start_x
+    y = start_y
 
-    del mapdraw
+    if debug == 1:
+        print 'Starting at ' + str(start_x) + ',' + str(start_y)
+
+    while count < max_area:
+        if count > min_area:
+            if random.randrange(50000) == 0:
+                break
+
+        mappixel = mapimage.getpixel( (x,y) )
+        try:
+            color_idx = colors.index( mappixel )
+        except ValueError:
+            if mappixel == red:
+                color_idx = -1
+            else:
+                print "Unable to find index of color: " + str(mappixel)
+
+        if debug == 2 and color_idx != -1:
+            print "Color index of " + str((x,y)) + ": " + str(color_idx) + " == " + str(mappixel)
+        elif debug == 2 and color_idx == -1:
+            print "Special location at " + str((x,y))
+
+        if color_idx == 0:
+            count += 1
+
+        if color_idx >= (len(colors) - 1):
+            color_idx = len(colors) - 1
+            color = colors[color_idx]
+        elif color_idx > 0:
+            color_idx += 1
+            color = colors[color_idx]
+        elif color_idx == -1:
+            color = red
+
+        if random.randrange(15000) == 0:
+            color = red
+            if debug == 1:
+                print "Special location at " + str((x,y))
+
+        mapimage.putpixel( (x,y), color )
+
+        # Move to a new spot
+        move = random.randrange(34)
+        if move == 0:
+            if random.randrange(1000) == 0:
+                x = random.randrange(x_size)
+                y = random.randrange(y_size)
+                if debug == 1:
+                    print "Reset position to " + str( (x,y) )
+        elif move == 1:
+            x = x
+            y = y
+        elif move == 2 or move == 10 or move == 18 or move == 26 or move == 30:
+            y -= 1
+        elif move == 3 or move == 11 or move == 19 or move == 27 or move == 31:
+            x += 1
+        elif move == 4 or move == 12 or move == 20 or move == 28 or move == 32:
+            x -= 1
+        elif move == 5 or move == 13 or move == 21 or move == 29 or move == 33:
+            y += 1
+        elif move == 6 or move == 14 or move == 22:
+            x -= 1
+            y -= 1
+        elif move == 7 or move == 15 or move == 23:
+            x += 1
+            y -= 1
+        elif move == 8 or move == 16 or move == 24:
+            x += 1
+            y += 1
+        elif move == 9 or move == 17 or move == 25:
+            x -= 1
+            y += 1
+
+        if x < 0:
+            x = ( x + x_size - 1 )
+        elif x >= x_size:
+            x = ( x - x_size )
+
+        if y < 0:
+            y = ( y + y_size - 1 )
+        elif y >= y_size:
+            y = ( y - y_size )
+
+    pct = int( ( ( float(count) / float(total_size) ) * 100.0 ) * 100 )
+    pct = ( float(pct) / 100.0 )
+
+    print "Created " + str(count) + " land pixels.  This covers " + str(pct) + " of the world."
 
     mapimage.save(output, 'PNG')
 
@@ -66,86 +171,6 @@ def mk_image( output = "/Users/mbroekman/testimage.png" , x_size = 2048, y_size 
 if __name__ == "__main__":
    main(sys.argv[1:])
 
-print 'Number of arguments:', len(sys.argv), 'arguments.'
-print 'Argument List:', str(sys.argv)
-
-
-# my @bitmap = ();
-
-# $myImage->fill(0,0,$color[0]);
-
-# my $cnt = 0;
-# my $x_pos = int(rand($x_size));
-# my $y_pos = int(rand($y_size));
-# my $reset = 0;
-# my $lastmove;
-
-# while ( $cnt < $max_area ) {
-#     if ( $cnt > $min_area ) {
-#         last if ( int(rand(5000)) == 0 );
-#     }
-#     $color_idx = $myImage->getPixel($x_pos,$y_pos);
-#     if ( ! defined($bitmap[$x_pos][$y_pos]) ) {
-#         $bitmap[$x_pos][$y_pos] = 1;
-#         $cnt++;
-#     } elsif ( $bitmap[$x_pos][$y_pos] < 6 ) {
-#         $bitmap[$x_pos][$y_pos]++;
-#     } else {
-#         if ( int(rand(500)) == 0 ) {
-#             print "Special location $x_pos, $y_pos\n" if ( $bitmap[$x_pos][$y_pos] == 6 );
-#             $bitmap[$x_pos][$y_pos]++ if ( $bitmap[$x_pos][$y_pos] == 6 );
-#         }
-#     }
-#     $myImage->setPixel($x_pos,$y_pos,$color[$bitmap[$x_pos][$y_pos]]);
-#     my $move = int(rand(34));
-#     if ( $reset == 1 ) {
-#         $x_pos = int(rand($x_size));
-#         $y_pos = int(rand($y_size));
-#         print "Reset flag set.  New position = $x_pos, $y_pos\n";
-#         $reset = 0;
-#     } elsif ( $move == 0 ) {
-#         if ( int(rand(100)) == 0 ) {
-#             $x_pos = int(rand($x_size));
-#             $y_pos = int(rand($y_size));
-#             print "Reset position to $x_pos, $y_pos\n";
-#         }
-#     } elsif ( $move == 1 ) {
-#         $x_pos += 0;
-#         $y_pos += 0;
-#     } elsif ( $move == 2 || $move == 10 || $move == 18 || $move == 26 || $move == 30 ) {
-#         $y_pos -= 1;
-#     } elsif ( $move == 3 || $move == 11 || $move == 19 || $move == 27 || $move == 31 ) {
-#         $x_pos += 1;
-#     } elsif ( $move == 4 || $move == 12 || $move == 20 || $move == 28 || $move == 32 ) {
-#         $y_pos += 1;
-#     } elsif ( $move == 5 || $move == 13 || $move == 21 || $move == 29 || $move == 33 ) {
-#         $x_pos -= 1;
-#     } elsif ( $move == 6 || $move == 14 || $move == 22 ) {
-#         $x_pos -= 1;
-#         $y_pos -= 1;
-#     } elsif ( $move == 7 || $move == 15 || $move == 23 ) {
-#         $x_pos += 1;
-#         $y_pos -= 1;
-#     } elsif ( $move == 8 || $move == 16 || $move == 24 ) {
-#         $x_pos += 1;
-#         $y_pos += 1;
-#     } elsif ( $move == 9 || $move == 17 || $move == 25 ) {
-#         $x_pos -= 1;
-#         $y_pos += 1;
-#     }
-#     if ( $x_pos < 0 ) {
-#         $x_pos += $x_size;
-#     } elsif ( $x_pos >= $x_size ) {
-#         $x_pos -= $x_size;
-#     }
-#     if ( $y_pos < 0 ) {
-#         $y_pos = 0;
-#         $reset = 1;
-#     } elsif ( $y_pos >= $y_size ) {
-#         $y_pos = $y_size - 1;
-#         $reset = 1;
-#     }
-# }
 
 # my $pct = ( $cnt / $area ) * 100;
 # print "Colored $cnt pixels, covering $pct of the background\n";
