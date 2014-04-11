@@ -19,32 +19,37 @@ def gen_pass(alphabet,complexity,pw_length):
 
 def chk_pass(alphabet,complexity,password):
     chk_comp = 0
+    foundclass = ""
     global debug
 
     for c in password:
         if c in class1:
-            if alphabet.find(class1) > -1:
+            if complexity > 0 and class1 not in foundclass:
                 if debug > 0:
                     print "Found lowercase ascii letter"
                 alphabet = alphabet.replace(class1,"")
+                foundclass = foundclass + class1
                 chk_comp += 1
         if c in class2:
-            if alphabet.find(class2) > -1:
+            if complexity > 1 and class2 not in foundclass:
                 if debug > 0:
                     print "Found uppercase ascii letter"
                 alphabet = alphabet.replace(class2,"")
+                foundclass = foundclass + class2
                 chk_comp += 1
         if c in class3:
-            if alphabet.find(class3) > -1:
+            if complexity > 2 and class3 not in foundclass:
                 if debug > 0:
                     print "Found number"
                 alphabet = alphabet.replace(class3,"")
+                foundclass = foundclass + class3
                 chk_comp += 1
         if c in class4:
-            if alphabet.find(class4) > -1:
+            if complexity > 3 and class4 not in foundclass:
                 if debug > 0:
                     print "Found punctuation"
                 alphabet = alphabet.replace(class4,"")
+                foundclass = foundclass + class4
                 chk_comp += 1
         if chk_comp >= complexity:
             if debug > 0:
