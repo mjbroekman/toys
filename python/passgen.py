@@ -83,7 +83,7 @@ debug = 0
 
 for opt, arg in opts:
     if opt == '-h':
-        print 'passgen.py -x exclude_char [-h] [-d] [-1|2|3|4|5] [-l length]'
+        print 'passgen.py [-x exclude_char ...] [-h] [-d] [-1|2|3|4|5] [-l length]'
         print ''
         print '-x - Exclude a character.  Can be used multiple times.'
         print '-l - Password length. Defaults to 32.'
