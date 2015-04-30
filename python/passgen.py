@@ -64,15 +64,16 @@ def chk_pass(alphabet,complexity,password):
 
 
 try:
-    opts, args = getopt.getopt(sys.argv[1:],"hd12345x:l:")
+    opts, args = getopt.getopt(sys.argv[1:],"hd12345i:x:l:")
 except getopt.GetoptError:
-    print 'passgen.py [-x exclude_char] [-h] [-d] [-1|2|3|4|5] [-l length]'
+    print 'passgen.py [-x exclude_char] [-i include_char] [-h] [-d] [-1|2|3|4|5] [-l length]'
     sys.exit(2)
 
 # Default password length
 pw_length = 32
 alphabet = ""
 exclude_chars = ""
+include_chars = ""
 mypw = ""
 class1 = string.ascii_lowercase
 class2 = string.ascii_uppercase
@@ -97,6 +98,8 @@ for opt, arg in opts:
         sys.exit()
     if opt == '-x':
         exclude_chars = str(arg) + str(exclude_chars)
+    if opt == '-i':
+        include_chars = str(arg) + str(include_chars)
     if opt == '-1':
         complexity = 1
     if opt == '-2':
@@ -132,6 +135,8 @@ if debug > 1:
 new_alph = alphabet
 for e in exclude_chars:
     new_alph = new_alph.replace(e,"");
+
+new_alph = alphabet + include_chars
 
 alphabet = new_alph
 
