@@ -10,11 +10,9 @@ These are code snippets from my .bashrc that I use to make my shell more useful 
 ## Fortune Installation
 1. Copy sample.fortune to ~/.fortune
 2. Copy fortune.sh to ~/.fortune.sh
-3. Edit ~/.bashrc to include
-> ~/.fortune.sh
+3. Edit ~/.bashrc to include: `~/.fortune.sh`
 4. Add your own fortunes to ~/.fortune
 
 ## Homebrew Updater Installation
 1. Copy update_brew.sh to ~/.update_brew.sh
-2. Edit ~/.bashrc to include
-> ~/.update_brew.sh
+2. Edit ~/.bashrc to include: `~/.update_brew.sh`
