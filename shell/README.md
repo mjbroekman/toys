@@ -8,13 +8,13 @@ These are code snippets from my .bashrc that I use to make my shell more useful 
 * update_brew.sh - Check for, and upgrade, brew-managed installs once per day
 
 ## Fortune Installation
-* Copy sample.fortune to ~/.fortune
-* Copy fortune.sh to ~/.fortune.sh
-* Edit ~/.bashrc to include
-'~/.fortune.sh'
-* Add your own fortunes to ~/.fortune
+1. Copy sample.fortune to ~/.fortune
+2. Copy fortune.sh to ~/.fortune.sh
+3. Edit ~/.bashrc to include
+> ~/.fortune.sh
+4. Add your own fortunes to ~/.fortune
 
 ## Homebrew Updater Installation
-* Copy update_brew.sh to ~/.update_brew.sh
-* Edit ~/.bashrc to include
-'~/.update_brew.sh'
+1. Copy update_brew.sh to ~/.update_brew.sh
+2. Edit ~/.bashrc to include
+> ~/.update_brew.sh
