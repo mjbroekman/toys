@@ -26,7 +26,6 @@ if [ -r $FORTUNE_FILE ]; then
 	echo ${FORT_LINES[$FORT_IDX]}
     fi
 else
-    set -x
     declare -a NUM
     for (( NUMMATCH=1; $NUMMATCH != 0; )); do
 	NUM[0]=$(( $RANDOM % 72 ))
