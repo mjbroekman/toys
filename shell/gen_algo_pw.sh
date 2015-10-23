@@ -1,5 +1,7 @@
 #!/bin/bash
-
+# 
+# gen_algo_pw.sh - This is intended as an algorithmic way to generate initial passwords
+#
 MYUSERNAME=$1
 MYHOSTNAME=$2
 MYHOSTADDR=$3
