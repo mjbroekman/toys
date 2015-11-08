@@ -5,6 +5,11 @@
 # Description:
 #   Code snippet to keep brew installs updated on MacOS X
 #
+if [ ! -x /usr/local/bin/brew ]; then
+    exit 0
+elif [ -d ~/Dropbox ]; then
+    brew list >~/Dropbox/brew_list.log
+fi
 if [ ! -f ~/.homebrew_updated ]; then
     date +%Y%m%d >~/.homebrew_updated
     echo "Checking for homebrew updates"
