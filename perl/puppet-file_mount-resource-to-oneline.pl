@@ -4,26 +4,26 @@ my $file = $ARGV[0];
 open(FILE,"$file");
 my $res = "";
 my $req = "";
-while (<FILE>) {
-  if ( $_ =~ /^file { \'([^\']+)\':/ ) {
+while ( $mount = <FILE>) {
+  if ( $mount =~ /^file { \'([^\']+)\':/ ) {
     $res = "file";
     $req = $1;
-  } elsif ( $_ =~ /^mount { \'([^\']+)\':/ ) {
+  } elsif ( $mount =~ /^mount { \'([^\']+)\':/ ) {
     $res = "mount";
     $req = $1;
   }
 
-  chomp $_;
-  if ( $_ =~ /^file/ ) {
-      print $_;
+  chomp $mount;
+  if ( $line =~ /^file/ ) {
+      print $mount;
       print "  path => '$req',";
-  } elsif ( $_ =~ /^mount/ ) {
-      print $_;
+  } elsif ( $mount =~ /^mount/ ) {
+      print $mount;
       print "  name => '$req',";
-  } elsif ( $_ !~ /}$/ ) {
-    print $_;
+  } elsif ( $mount !~ /}$/ ) {
+    print $mount;
   } elsif ( $res =~ "file" ) {
-    print $_ . "\n";
+    print $mount . "\n";
   } else {
     print "  require => File['" . $req . "'], }\n";
   }
