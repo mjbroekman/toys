@@ -22,6 +22,7 @@ if [ ! -f ~/.homebrew_updated ]; then
 #    done
 #    echo
 elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
+    date +%Y%m%d >~/.homebrew_updated
     if [ -f ~/.homebrew_update_log ]; then
 	mv ~/.homebrew_update_log ~/.homebrew_update_log.1
     fi
@@ -30,6 +31,12 @@ elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
     fi
     echo "Checking for homebrew updates"
     brew update >~/.homebrew_update_log 2>&1
+
+    if [ `date +%w` -eq 0 ]; then
+	BLIST=`brew list`
+	brew uninstall --force $BLIST >~/.homebrew_upgrade_log 2>&1 
+	brew install $BLIST >~/.homebrew_upgrade_log 2>&1 
+    fi
 #    BREW_CNT=`brew list | wc -l | awk '{ print $1 }'`
 #    IDX=0
 #    for f in `brew list`; do
@@ -38,11 +45,4 @@ elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
 #	brew upgrade $f >~/.homebrew_upgrade_log 2>&1
 #    done
 #    echo
-fi
-
-if [ `date +%w` -eq 0 -a `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
-    date +%Y%m%d >~/.homebrew_updated
-    BLIST=`brew list`
-    brew uninstall --force $BLIST >~/.homebrew_upgrade_log 2>&1 
-    brew install $BLIST >~/.homebrew_upgrade_log 2>&1 
 fi
