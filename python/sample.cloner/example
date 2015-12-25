@@ -1,0 +1,20 @@
+[repo1]
+base = /Users/mbroekman/git/github
+list = /Users/mbroekman/.cloner/github
+tool = git
+
+[repo2]
+base = /Users/mbroekman/git/extras
+list = /Users/mbroekman/.cloner/extras
+tool = git
+
+[repo3]
+base = /Users/mbroekman/git/bitbucket
+list = /Users/mbroekman/.cloner/bitbucket
+tool = git
+
+[repo4]
+base = /Users/mbroekman/svn/googlecode
+list = /Users/mbroekman/.cloner/googlecode
+tool = svn
+
