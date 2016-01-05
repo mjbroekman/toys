@@ -8,8 +8,8 @@
 #
 
 FORTUNE_FILE=~/.fortune
-IDX=0
 if [ -r $FORTUNE_FILE ]; then
+    IDX=1
     declare -a FORT_LINES
     IFS="
 "
@@ -18,10 +18,9 @@ if [ -r $FORTUNE_FILE ]; then
 	IDX=$(( $IDX + 1 ))
     done
     unset IFS
-    IDX=$(( $IDX + 1 ))
     FORT_IDX=$(( $RANDOM % $IDX ))
     if [ $FORT_IDX -eq $IDX ]; then
-	echo "Your lucky number is $RANDOM"
+	echo "Your lucky number is $FORT_IDX"
     else
 	echo ${FORT_LINES[$FORT_IDX]}
     fi
