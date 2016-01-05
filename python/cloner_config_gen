@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+
+import os, sys, ConfigParser
+
+config = ConfigParser.RawConfigParser()
+
+config.add_section('repo1')
+config.set('repo1', 'base', '/Users/mbroekman/git/github')
+config.set('repo1', 'list', '/Users/mbroekman/.cloner/github')
+config.set('repo1', 'tool', 'git')
+
+config.add_section('repo2')
+config.set('repo2', 'base', '/Users/mbroekman/git/extras')
+config.set('repo2', 'list', '/Users/mbroekman/.cloner/extras')
+config.set('repo2', 'tool', 'git')
+
+config.add_section('repo3')
+config.set('repo3', 'base', '/Users/mbroekman/git/bitbucket')
+config.set('repo3', 'list', '/Users/mbroekman/.cloner/bitbucket')
+config.set('repo3', 'tool', 'git')
+
+config.add_section('repo4')
+config.set('repo4', 'base', '/Users/mbroekman/svn/googlecode')
+config.set('repo4', 'list', '/Users/mbroekman/.cloner/googlecode')
+config.set('repo4', 'tool', 'svn')
+
+# Writing our configuration file to 'example.cfg'
+with open('/Users/mbroekman/.cloner/example', 'wb') as configfile:
+    config.write(configfile)

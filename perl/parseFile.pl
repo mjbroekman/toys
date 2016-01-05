@@ -10,10 +10,12 @@ sub parseFile {
   if ( -f $filename ) {
     open(FILE,"$filename") || die "Error opening $filename\n";
     my $line = 0;
+    my @lines = <FILE>;
+    my $filelines = scalar( @lines );
     while ( $line < $linecount ) {
       $line++;
-      my $readline = <FILE>;
-      if ( $line eq 1 or $line eq $linecount ) {
+      my $readline = shift @lines;
+      if ( $line eq 1 or $line eq $linecount or $line eq $filelines ) {
         print $readline;
       } elsif ( ( $line % $modval ) eq 0 and $readline !~ /[^a-z]skip[^a-z]/i ) {
         print $readline;
