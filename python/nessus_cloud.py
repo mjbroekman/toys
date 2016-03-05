@@ -13,8 +13,8 @@ requests.packages.urllib3.disable_warnings()
 URL = 'https://cloud.tenable.com:443'
 VERIFY = False
 TOKEN = ''
-ACCESSKEY = '0b9cd9b09892cb7eb96b6ead2e3749120c75d0d9fe566cc03c1b5474052cf226'
-SECRETKEY = '7748944b447811bc7b3129ebc45fc6bbf4b06f9e8b8e45227fb8a126bff98bab'
+ACCESSKEY = ''
+SECRETKEY = ''
 
 def build_url(resource):
     """
