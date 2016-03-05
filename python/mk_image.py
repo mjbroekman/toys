@@ -1,199 +1,249 @@
 #!/usr/bin/env python
-
-import sys, getopt
-
-# Defaults
-debug = 0
+"""
+Make a random image that might or might not be suitable for a 'world map'
+"""
+from __future__ import print_function
+import sys
+import getopt
 
 def main(argv):
+    """
+    Main processing of arguments
+    """
     output = "testimage.png"
     x_size = 1024
     y_size = 1024
     max_land = 65
     min_land = 35
+    debug = 0
 
     try:
-        opts, args = getopt.getopt(argv,"hdx:y:m:n:o:")
+        opts = getopt.getopt(argv, "hdx:y:m:n:o:")
     except getopt.GetoptError:
-        print 'mk_image.py -x <image width> -y <image height> -m <max "land"> -n <min "land"> -o <outputfile>'
+        print('mk_image.py ', end='')
+        print('-x <image width> -y <image height> ', end='')
+        print('-m <max "land"> -n <min "land"> -o <outputfile>')
         sys.exit(2)
 
     for opt, arg in opts:
         if opt == '-h':
-            print 'mk_image.py -x <image width> -y <image height> -m <max "land"> -n <min "land"> -o <outputfile>'
+            print('mk_image.py ', end='')
+            print('-x <image width> -y <image height> ', end='')
+            print('-m <max "land"> -n <min "land"> -o <outputfile>')
             sys.exit()
-        elif opt in ("-o"):
+        elif opt in "-o":
             output = arg
-        elif opt in ("-x"):
+        elif opt in "-x":
             x_size = int(arg)
-        elif opt in ("-y"):
+        elif opt in "-y":
             y_size = int(arg)
-        elif opt in ("-m"):
+        elif opt in "-m":
             max_land = int(arg)
-        elif opt in ("-n"):
+        elif opt in "-n":
             min_land = int(arg)
-        elif opt in ("-d"):
-            global debug
+        elif opt in "-d":
             debug += 1
 
-    mk_image( output, x_size, y_size, max_land, min_land )
+    mk_image({'output':output,
+              'x_size':x_size,
+              'y_size':y_size,
+              'max_land':max_land,
+              'min_land':min_land,
+              'debug':debug})
 
 
-def mk_image( output, x_size, y_size, max_land, min_land ):
-    from PIL import Image, ImageDraw
+
+def dbg_print(debug, dbg_limit, msg):
+    """
+    Print only if debug var is over the limit
+    """
+    if debug > dbg_limit:
+        print(msg)
+
+
+
+def bnd_check(lngt, latd, data):
+    """
+    Check boundary conditions
+    """
+    if lngt < 0:
+        lngt = (lngt + data['x_size'] - 1)
+    elif lngt >= data['x_size']:
+        lngt = (lngt - data['x_size'])
+
+    if latd < 0:
+        latd = (latd + data['y_size'] - 1)
+    elif latd >= data['y_size']:
+        latd = (latd - data['y_size'])
+
+    return (lngt, latd)
+
+
+
+def move_cursor(lngt, latd, move, data):
+    """
+    Move to a new spot
+    """
     import random
 
-    global debug
+    # move == 0: random relocation
+    # move == 1: no change (elevate)
+    # move == 2 + ( x * 8 ) : south
+    # move == 3 + ( x * 8 ) : north
+    # move == 4 + ( x * 8 ) : west
+    # move == 5 + ( x * 8 ) : east
+    # move == 6 + ( x * 8 ) : southwest
+    # move == 7 + ( x * 8 ) : northwest
+    # move == 8 + ( x * 8 ) : northeast
+    # move == 9 + ( x * 8 ) : southeast
+    if move == 0 and random.randrange(1000) == 0:
+        lngt = random.randrange(data['x_size'])
+        latd = random.randrange(data['y_size'])
+        dbg_print(data['debug'], 0, "Reset position to " + str((lngt, latd)))
+    elif move == 2 or move == 10 or move == 18 or move == 26 or move == 30:
+        latd -= 1
+    elif move == 3 or move == 11 or move == 19 or move == 27 or move == 31:
+        lngt += 1
+    elif move == 4 or move == 12 or move == 20 or move == 28 or move == 32:
+        lngt -= 1
+    elif move == 5 or move == 13 or move == 21 or move == 29 or move == 33:
+        latd += 1
+    elif move == 6 or move == 14 or move == 22:
+        lngt -= 1
+        latd -= 1
+    elif move == 7 or move == 15 or move == 23:
+        lngt += 1
+        latd -= 1
+    elif move == 8 or move == 16 or move == 24:
+        lngt += 1
+        latd += 1
+    elif move == 9 or move == 17 or move == 25:
+        lngt -= 1
+        latd += 1
 
-    blue = (0,0,128)
-    green = (0,250,0)
-    yellow = (154,205,50)
-    ltbrown = (200,164,96)
-    dkbrown = (100,42,42)
-    grey = (127,127,127)
-    white = (250,250,250)
-    black = (0,0,0)
-    red = (255,0,0)
-    colors = [blue, green, yellow, ltbrown, dkbrown, grey, white, black, red]
-    color = (0,0,0)
+    return bnd_check(lngt, latd, data)
 
-    total_size = (x_size * y_size)
-    min_area = int(total_size * min_land / 100)
-    max_area = int(total_size * max_land / 100)
-    count = 0
 
-    if debug > 0:
-        print 'Creating map file ' + output + ': X size = ' + str(x_size) + ', Y size = ' + str(y_size)
-        print '\t\t Minimum landmass = ' + str(min_land) + '% (' + str(min_area) + ' land pixels)'
-        print '\t\t Maximum landmass = ' + str(max_land) + '% (' + str(max_area) + ' land pixels)'
-        print '\t\t Total pixels = ' + str(total_size)
-        print '\t\t Color depth = ' + str(len(colors))
-        print '\t\t Color Index 0 = ' + str(colors[0])
-        print '\t\t Color Index 1 = ' + str(colors[1])
-        print '\t\t Color Index 2 = ' + str(colors[2])
-        print '\t\t Color Index 3 = ' + str(colors[3])
-        print '\t\t Color Index 4 = ' + str(colors[4])
-        print '\t\t Color Index 5 = ' + str(colors[5])
-        print '\t\t Color Index 6 = ' + str(colors[6])
-        print '\t\t Color Index 7 = ' + str(colors[7])
-        print '\t\t Color Index 8 = ' + str(colors[8])
-        print '\t\t Color Length -1 = ' + str(colors[len(colors) - 1])
-        print '\t\t Color Length -2 = ' + str(colors[len(colors) - 2])
-        print str(len(colors) - 3)
-        print str(len(colors) - 2)
-        print str(len(colors) - 1)
 
-    mapsize = (x_size,y_size)
-    mapimage = Image.new('RGB', mapsize, blue)
+def get_color(color_idx, colors, data):
+    """
+    Determine what color to make the pixel
+    """
+    if color_idx == 0:
+        dbg_print(data['debug'], 1, "Generating land.")
+        data['count'] += 1
+        color_idx += 1
+    elif color_idx > 0 and color_idx < (len(colors) - 3):
+        dbg_print(data['debug'], 1, "Raising land")
+        color_idx += 1
+    if color_idx >= (len(colors) - 2):
+        dbg_print(data['debug'], 1, "Removing special location.")
+        color_idx = len(colors) - 2
+    # elif color_idx < 0:
+    #     color = colors[len(colors) - 1]
 
-    start_x = random.randrange(x_size)
-    start_y = random.randrange(y_size)
+    return colors[color_idx]
 
-    x = start_x
-    y = start_y
 
-    if debug > 0:
-        print 'Starting at ' + str(start_x) + ',' + str(start_y)
 
-    while count < max_area:
-        if count > min_area:
+def mk_image(data):
+    """
+    Main image generation
+    """
+    from PIL import Image
+    from PIL import ImageDraw
+    import random
+
+    colors = [
+        (0, 0, 128), # blue
+        (0, 250, 0), # green
+        (154, 205, 50), # yellow
+        (200, 164, 96), # light brown
+        (100, 42, 42), # dark brown
+        (127, 127, 127), #grey
+        (250, 250, 250), # white
+        (0, 0, 0), # black
+        (255, 0, 0) # red - special locations
+        ]
+    color = (0, 0, 0)
+
+    data['total_size'] = (data['x_size'] * data['y_size'])
+    data['min_area'] = int(data['total_size'] * data['min_land'] / 100)
+    data['max_area'] = int(data['total_size'] * data['max_land'] / 100)
+    data['count'] = 0
+
+    dbg_print(data['debug'], 0,
+              'Creating map file '+data['output']+': ')
+    dbg_print(data['debug'], 0,
+              'X size = '+str(data['x_size'])+', Y size = '+str(data['y_size']))
+    dbg_print(data['debug'], 0,
+              '\t\tMinimum landmass = '+str(data['min_land'])+'%')
+    dbg_print(data['debug'], 0,
+              '\t\t\t'+str(data['min_area'])+' land pixels)')
+    dbg_print(data['debug'], 0,
+              '\t\tMaximum landmass = '+str(data['max_land'])+'%')
+    dbg_print(data['debug'], 0,
+              '\t\t\t'+str(data['max_area'])+' land pixels)')
+    dbg_print(data['debug'], 0,
+              '\t\tTotal pixels = '+str(data['total_size']))
+    dbg_print(data['debug'], 0,
+              '\t\tColor depth = '+str(len(colors)))
+
+    data['mapsize'] = (data['x_size'], data['y_size'])
+    mapimage = Image.new('RGB', data['mapsize'], colors[0])
+
+    data['start_x'] = random.randrange(data['x_size'])
+    data['start_y'] = random.randrange(data['y_size'])
+
+    lngt = data['start_x']
+    latd = data['start_y']
+
+    dbg_print(data['debug'], 0,
+              'Starting at ' + str(data['start_x']) + ',' + str(data['start_y']))
+
+    while data['count'] < data['max_area']:
+        if data['count'] > data['min_area']:
             if random.randrange(50000) == 0:
                 break
 
-        mappixel = mapimage.getpixel( (x,y) )
+        mappixel = mapimage.getpixel((lngt, latd))
 
         try:
-            color_idx = colors.index( mappixel )
+            color_idx = colors.index(mappixel)
         except ValueError:
-            print "Error in getting color index at " + str(mappixel)
+            print("Error in getting color index at " + str(mappixel))
 
-        if debug > 0:
-            print "Pixel " + str( (x,y) ) + " = " + str( mappixel ) + " (Index: " + str(color_idx) + ")"
+        dbg_print(data['debug'], 0,
+                  "Pixel "+str((lngt, latd))+" = "+str(mappixel)+" (Index: "+str(color_idx)+")")
 
-        if color_idx == 0:
-            if debug > 1:
-                print "Generating land."
-            count += 1
-            color_idx += 1
-        elif color_idx > 0 and color_idx < (len(colors) - 3):
-            if debug > 1:
-                print "Raising land"
-            color_idx += 1
-        if color_idx >= (len(colors) - 2):
-            if debug > 1:
-                print "Removing special location at " + str( (x,y) )
-            color_idx = len(colors) - 2
-        # elif color_idx == -1:
-        #     color = red
-
-        color = colors[color_idx]
+        color = get_color(color_idx, colors, data)
 
         if random.randrange(15000) == 0:
-            color = red
-            if debug > 0:
-                print "Special location at " + str((x,y))
+            color = colors[len(colors) - 1]
+            dbg_print(data['debug'], 0, 'Special location at '+str((lngt, latd)))
 
-        mapimage.putpixel( (x,y), color )
+        mapimage.putpixel((lngt, latd), color)
 
-        # Move to a new spot
-        move = random.randrange(34)
-        if move == 0:
-            if random.randrange(1000) == 0:
-                x = random.randrange(x_size)
-                y = random.randrange(y_size)
-                if debug > 0:
-                    print "Reset position to " + str( (x,y) )
-        elif move == 1:
-            x = x
-            y = y
-        elif move == 2 or move == 10 or move == 18 or move == 26 or move == 30:
-            y -= 1
-        elif move == 3 or move == 11 or move == 19 or move == 27 or move == 31:
-            x += 1
-        elif move == 4 or move == 12 or move == 20 or move == 28 or move == 32:
-            x -= 1
-        elif move == 5 or move == 13 or move == 21 or move == 29 or move == 33:
-            y += 1
-        elif move == 6 or move == 14 or move == 22:
-            x -= 1
-            y -= 1
-        elif move == 7 or move == 15 or move == 23:
-            x += 1
-            y -= 1
-        elif move == 8 or move == 16 or move == 24:
-            x += 1
-            y += 1
-        elif move == 9 or move == 17 or move == 25:
-            x -= 1
-            y += 1
+        (lngt, latd) = move_cursor(lngt, latd, random.randrange(34), data)
 
-        if x < 0:
-            x = ( x + x_size - 1 )
-        elif x >= x_size:
-            x = ( x - x_size )
+    pct = int(((float(data['count']) / float(data['total_size'])) * 100.0) * 100)
+    pct = (float(pct) / 100.0)
 
-        if y < 0:
-            y = ( y + y_size - 1 )
-        elif y >= y_size:
-            y = ( y - y_size )
+    print("Created "+str(data['count'])+" land pixels.  This covers "+str(pct)+" of the world.")
 
-    pct = int( ( ( float(count) / float(total_size) ) * 100.0 ) * 100 )
-    pct = ( float(pct) / 100.0 )
+    mapimage.save(data['output'], 'PNG')
 
-    print "Created " + str(count) + " land pixels.  This covers " + str(pct) + " of the world."
-
-    mapimage.save(output, 'PNG')
 
 
 if __name__ == "__main__":
-   main(sys.argv[1:])
+    main(sys.argv[1:])
 
 
 # my $pct = ( $cnt / $area ) * 100;
-# print "Colored $cnt pixels, covering $pct of the background\n";
-# print "Finished generating GD data.  Outputting to png\n";
+# print("Colored $cnt pixels, covering $pct of the background\n";
+# print("Finished generating GD data.  Outputting to png\n";
 # my $png_data = $myImage->png;
 # open(DISPLAY,">$filename") || die;
 # binmode DISPLAY;
-# print DISPLAY $png_data;
+# print(DISPLAY $png_data;
 # close DISPLAY;
