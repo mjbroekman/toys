@@ -62,53 +62,126 @@ def connect(method, resource, data=None, params=None):
     except ValueError:
         return req.content
 
+def display_host(scan_id, host, details):
+    """
+    Display details for a specific host
+    """
+    print('', end='\t')
+    print('Score: ', host['score'], end='\t')
+    print('Critical: ', host['critical'], end='\t')
+    print('High: ', host['high'], end='\t')
+    print('Medium: ', host['medium'], end='\t')
+    print('Low: ', host['low'], end='\t')
+    print('Info: ', host['info'], end='\t')
+    print('Host: ', host['hostname'])
 
-def get_scans():
+    if details != 0:
+        hostdata = connect('GET', '/scans/'+format(scan_id)+'/hosts/'+format(host['host_id']))
+        print('\t\tGeneral Information', end='\n\t\t\t')
+        hostinfo = hostdata['info']
+
+        for key in 'mac-address', 'operating-system', 'host-ip', 'host-fqdn':
+            try:
+                print(key, ': ', format(hostinfo[key]).replace('\n', ', '), end='\n\t\t\t')
+            except KeyError:
+                print('', end='')
+
+        print('')
+
+        if len(hostdata['compliance']) > 0:
+            print('\t\tCompliance Results:', end='\n\t\t\t')
+
+            for compdata in hostdata['compliance']:
+                for key in 'count', 'severity', 'plugin_id', 'plugin_family':
+                    try:
+                        print(key, ': ', format(compdata[key]).replace('\n', ', '), end='\t')
+                    except KeyError:
+                        print('', end='')
+
+                print('', end='\n\t\t\t')
+
+            print('')
+
+        if len(hostdata['vulnerabilities']) > 0:
+            print('\t\tVulnerability Results:', end='\n\t\t\t')
+
+            for vulndata in hostdata['vulnerabilities']:
+                if vulndata['severity'] > 0:
+                    for key in 'count', 'severity', 'plugin_family', 'plugin_name':
+                        try:
+                            print(key, ': ', format(vulndata[key]).replace('\n', ', '), end='\t')
+                        except KeyError:
+                            print('', end='')
+
+                    print('', end='\n\t\t\t')
+
+            print('')
+
+        print('')
+
+
+
+def display_scan(scan, summary, details):
+    """
+    Show the details of a completed scan
+    """
+    scandata = connect('GET', '/scans/'+format(scan['id']))
+    print('{:<50}'.format(scan['name']), end='  ')
+
+    if scan['starttime'] is None:
+        print('{0:^15}'.format('On Demand'), end='  ')
+        print('{0:^12}'.format(' '), end='  ')
+    else:
+        print('{0:<15}'.format(scan['starttime']), end='  ')
+        print('{0:<12}'.format(scan['timezone']), end='  ')
+
+    print('{:^5}'.format(scandata['info']['hostcount']))
+
+    if summary != 0:
+        for host in scandata['hosts']:
+            display_host(scan['id'], host, details)
+
+
+
+def get_scans(status=None, summary=0, details=0):
     """
     Login to nessus.
     """
 
     # login = {'username': usr, 'password': pwd}
     data = connect('GET', '/scans')
+    print('{0:^6}  {1:^9}  {2:^50}  {3:^15}  {4:^12}  {5:^5}'.
+          format('ID', 'State', 'Scan Name', 'Start Time', 'Timezone', 'Hosts'))
+    print('{0}  {1}  {2}  {3}  {4}  {5}'.format('-'*6, '-'*9, '-'*50, '-'*15, '-'*12, '-'*5))
+
     for scan in data['scans']:
-        if scan['status'] != 'completed':
-            print('State: ', scan['status'], end="\t")
-            print('Name: ', scan['name'])
-        else:
-            scandata = connect('GET', '/scans/'+format(scan['id']))
-            print('State: ', scan['status'], end='\t')
-            print('Name: ', scan['name'], end='\t')
-            print('Hosts: ', len(scandata['hosts']))
+        if status is None or scan['status'] == status:
+            # print(scan)
+            # We want scan['rrules'] for displaying the schedule
+            # scaninfo = connect('GET', '/scans/'+format(scan['id']))
+            # print(scaninfo)
 
-            for host in scandata['hosts']:
-                print('', end='\t')
-                print('Score: ', host['score'], end='\t')
-                print('Critical: ', host['critical'], end='\t')
-                print('High: ', host['high'], end='\t')
-                print('Medium: ', host['medium'], end='\t')
-                print('Low: ', host['low'], end='\t')
-                print('Info: ', host['info'], end='\t')
-                print('Host: ', host['hostname'])
+            print('{:<6}'.format(scan['id']), end='  ')
+            if scan['status'] == 'empty' and scan['starttime'] is not None:
+                scan['status'] = 'scheduled'
 
-def get_groups():
-    """
-    Get the list of groups from Nessus
-    """
+            print('{:^9}'.format(scan['status']), end='  ')
 
-    data = connect('GET', '/groups')
-    for group in data['groups']:
-        print('Group: ', group['name'], end='\t')
-        print('ID: ', group['id'])
+            if scan['status'] != 'completed':
 
-# def logout():
-#     """
-#     Logout of nessus.
-#     """
-#
-#     connect('DELETE', '/session')
+                print('{:<50}'.format(scan['name']), end='  ')
 
+                if scan['starttime'] is None:
+                    print('{0:^15}'.format('On Demand'))
+                else:
+                    print('{0:<15}'.format(scan['starttime']), end='  ')
+                    print('{0:<12}'.format(scan['timezone']))
+            else:
+                display_scan(scan, summary, details)
 
 if __name__ == '__main__':
-    get_scans()
-    # print 'Logout'
-    # logout()
+    # refresh_scans()
+    try:
+        get_scans()
+    except KeyboardInterrupt:
+        print('Exiting...')
