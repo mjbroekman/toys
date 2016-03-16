@@ -1,5 +1,7 @@
 """
-Basic Nessus Cloud API retrieval
+Basic Nessus Cloud API interactions
+
+Based on python scripts from https://github.com/averagesecurityguy/Nessus6.git
 """
 from __future__ import print_function
 import json
