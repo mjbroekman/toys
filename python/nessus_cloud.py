@@ -1,49 +1,54 @@
 """
-Basic Nessus Cloud API retrieval
+Basic Nessus Cloud API interactions
+
+Based on python scripts from https://github.com/averagesecurityguy/Nessus6.git
 """
 from __future__ import print_function
 import json
 import sys
+import getopt
 import requests
 
 # Disable Warning when not verifying SSL certs.
 requests.packages.urllib3.disable_warnings()
 
 
-URL = 'https://cloud.tenable.com:443'
-VERIFY = False
-TOKEN = ''
-ACCESSKEY = ''
-SECRETKEY = ''
-
-def build_url(resource):
+def build_url(url, resource):
     """
     Build the URL properly
     """
-    return '{0}{1}'.format(URL, resource)
+    return '{0}{1}'.format(url, resource)
 
 
-def connect(method, resource, data=None, params=None):
+
+def connect(method, resource, userdata, data=None, params=None):
     """
     Send a request
 
-    Send a request to Nessus based on the specified data. If the session token
-    is available add it to the request. Specify the content type as JSON and
-    convert the data to JSON format.
+    Send a request to Nessus based on the specified data. API keys are required
+    and added to the request. Specify the content type as JSON and convert the
+    data to JSON format.
     """
-    headers = {'X-ApiKeys': 'accessKey={0}; secretKey={1}'.format(ACCESSKEY, SECRETKEY),
+    verify = False
+
+    headers = {'X-ApiKeys':
+               'accessKey={0}; secretKey={1}'.format(userdata['access'], userdata['secret']),
                'content-type': 'application/json'}
 
     data = json.dumps(data)
 
     if method == 'POST':
-        req = requests.post(build_url(resource), data=data, headers=headers, verify=VERIFY)
+        req = requests.post(build_url(userdata['url'], resource),
+                            data=data, headers=headers, verify=verify)
     elif method == 'PUT':
-        req = requests.put(build_url(resource), data=data, headers=headers, verify=VERIFY)
+        req = requests.put(build_url(userdata['url'], resource),
+                           data=data, headers=headers, verify=verify)
     elif method == 'DELETE':
-        req = requests.delete(build_url(resource), data=data, headers=headers, verify=VERIFY)
+        req = requests.delete(build_url(userdata['url'], resource),
+                              data=data, headers=headers, verify=verify)
     else:
-        req = requests.get(build_url(resource), params=params, headers=headers, verify=VERIFY)
+        req = requests.get(build_url(userdata['url'], resource),
+                           params=params, headers=headers, verify=verify)
 
     # Exit if there is an error.
     if req.status_code != 200:
@@ -62,7 +67,9 @@ def connect(method, resource, data=None, params=None):
     except ValueError:
         return req.content
 
-def display_host(scan_id, host, details):
+
+
+def display_host(userdata, scan_id, host):
     """
     Display details for a specific host
     """
@@ -75,8 +82,10 @@ def display_host(scan_id, host, details):
     print('Info: ', host['info'], end='\t')
     print('Host: ', host['hostname'])
 
-    if details != 0:
-        hostdata = connect('GET', '/scans/'+format(scan_id)+'/hosts/'+format(host['host_id']))
+    if userdata['details'] != 0:
+        hostdata = connect('GET',
+                           '/scans/'+format(scan_id)+'/hosts/'+format(host['host_id']),
+                           userdata)
         print('\t\tGeneral Information', end='\n\t\t\t')
         hostinfo = hostdata['info']
 
@@ -121,11 +130,11 @@ def display_host(scan_id, host, details):
 
 
 
-def display_scan(scan, summary, details):
+def display_scan(userdata, scan):
     """
     Show the details of a completed scan
     """
-    scandata = connect('GET', '/scans/'+format(scan['id']))
+    scandata = connect('GET', '/scans/'+format(scan['id']), userdata)
     print('{:<50}'.format(scan['name']), end='  ')
 
     if scan['starttime'] is None:
@@ -137,25 +146,25 @@ def display_scan(scan, summary, details):
 
     print('{:^5}'.format(scandata['info']['hostcount']))
 
-    if summary != 0:
+    if userdata['summary'] != 0:
         for host in scandata['hosts']:
-            display_host(scan['id'], host, details)
+            display_host(userdata, scan['id'], host)
 
 
 
-def get_scans(status=None, summary=0, details=0):
+def get_scans(userdata):
     """
     Login to nessus.
     """
 
     # login = {'username': usr, 'password': pwd}
-    data = connect('GET', '/scans')
+    data = connect('GET', '/scans', userdata)
     print('{0:^6}  {1:^9}  {2:^50}  {3:^15}  {4:^12}  {5:^5}'.
           format('ID', 'State', 'Scan Name', 'Start Time', 'Timezone', 'Hosts'))
     print('{0}  {1}  {2}  {3}  {4}  {5}'.format('-'*6, '-'*9, '-'*50, '-'*15, '-'*12, '-'*5))
 
     for scan in data['scans']:
-        if status is None or scan['status'] == status:
+        if userdata['mode'] is None or scan['status'] == userdata['mode']:
             # print(scan)
             # We want scan['rrules'] for displaying the schedule
             # scaninfo = connect('GET', '/scans/'+format(scan['id']))
@@ -177,11 +186,74 @@ def get_scans(status=None, summary=0, details=0):
                     print('{0:<15}'.format(scan['starttime']), end='  ')
                     print('{0:<12}'.format(scan['timezone']))
             else:
-                display_scan(scan, summary, details)
+                display_scan(userdata, scan)
+
+
+
+def user_help():
+    """
+    Basic help
+    """
+    print('nessus_cloud.py --akey <access_key> --skey <secret_key>', end=' ')
+    print('[-S|--scan_id <scan id>] [-H|--host_id <host id>]', end=' ')
+    print('[-m|--mode <report mode>]', end=' ')
+    print('[-s|--summary] [-D|--details] [-d|--debug] [-h|--help]')
+    sys.exit(2)
+
+
+
+def main(args):
+    """
+    Main processing of command line args
+    """
+
+    try:
+        optlist, args = getopt.getopt(args, 'S:H:m:Dsd',
+                                      ['scan_id=', 'host_id=', 'mode=',
+                                       'akey=', 'skey=',
+                                       'summary', 'details', 'debug'])
+    except getopt.GetoptError:
+        user_help()
+
+    user = {}
+    user['url'] = 'https://cloud.tenable.com:443'
+    user['access'] = None
+    user['secret'] = None
+    user['debug'] = 0
+    user['scan_id'] = None
+    user['host_id'] = None
+    user['summary'] = 0
+    user['details'] = 0
+    user['mode'] = None
+
+    for opt, arg in optlist:
+        if opt == "-m" or opt == '--mode':
+            user['mode'] = arg
+        elif opt == "-S" or opt == '--scan_id':
+            user['scan_id'] = arg
+        elif opt == "-H" or opt == '--host_id':
+            user['host_id'] = arg
+        elif opt == "-s" or opt == '--summary':
+            user['summary'] = 1
+        elif opt == "-D" or opt == '--details':
+            user['details'] = 1
+        elif opt == "-d" or opt == '--debug':
+            user['debug'] += 1
+        elif opt == "--akey":
+            user['access'] = arg
+        elif opt == "--skey":
+            user['secret'] = arg
+
+    if user['access'] is None or user['secret'] is None:
+        print('Access and Secret key arguments are mandatory.')
+        user_help()
+
+    if user['scan_id'] is None and user['host_id'] is None:
+        get_scans(user)
+
 
 if __name__ == '__main__':
-    # refresh_scans()
     try:
-        get_scans()
+        main(sys.argv[1:])
     except KeyboardInterrupt:
         print('Exiting...')
