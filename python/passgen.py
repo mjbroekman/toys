@@ -144,6 +144,7 @@ def main(args):
     include = ""
     my_puncs = None
     debug = 0
+    complexity = 4
     for opt, arg in opts:
         if opt == '-h':
             print('passgen.py [-x exclude_char ...] [-h] [-d] [-1|2|3|4|5] [-l length]')
