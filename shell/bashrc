@@ -102,7 +102,7 @@ fi
 export PATH=/usr/local/bin:/usr/bin:~/bin:/usr/local/sbin:/usr/local/clamav/bin:/usr/local/clamav/sbin:$PATH
 
 # Add certain paths if brew is installed
-if [ `which brew 2>&1 | grep -c "no brew"` -lt 0 ]; then
+if [ `which brew 2>&1 | grep -c "no brew"` -eq 0 ]; then
     if [ ! -z "$(brew --prefix php54 2>/dev/null)" ]; then
         export PATH="$PATH:$(brew --prefix php54)/bin:"
     fi
@@ -113,12 +113,14 @@ if [ `which brew 2>&1 | grep -c "no brew"` -lt 0 ]; then
             mkdir -p $GOPATH
         fi
     fi
+    if [ -f ~/.homebrew_token ]; then
+        export HOMEBREW_GITHUB_API_TOKEN=`cat ~/.homebrew_token`
+    fi
 fi
 
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64:~/lib
 # export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64:~/lib
 export EDITOR=emacs
-# export HOMEBREW_GITHUB_API_TOKEN=<your GitHub API token>
 export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
 
 if [ -x ~/.update_brew.sh ]; then
