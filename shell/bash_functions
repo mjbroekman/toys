@@ -31,10 +31,10 @@ function update_terminal_cwd() {
 
 function trim_directory_length {
     PROMPT_DIRTRIM=5
-    if [ `echo \`pwd\` | sed -e 's|/Users/mbroekman|\~|' | awk -F/ '{ print NF }'` -ge $PROMPT_DIRTRIM ]; then
-        TRIMMED_PWD=`echo \`pwd\` | sed -e 's|/Users/mbroekman|\~|' | awk -F/ '{ print $1"/.../"$( NF - 1 )"/"$NF }'`
+    if [ `echo \`pwd\` | sed -e 's|'$HOME'|\~|' | awk -F/ '{ print NF }'` -ge $PROMPT_DIRTRIM ]; then
+        TRIMMED_PWD=`echo \`pwd\` | sed -e 's|'$HOME'|\~|' | awk -F/ '{ print $1"/.../"$( NF - 1 )"/"$NF }'`
     else
-        TRIMMED_PWD=`echo \`pwd\` | sed -e 's|/Users/mbroekman|\~|'`
+        TRIMMED_PWD=`echo \`pwd\` | sed -e 's|'$HOME'|\~|'`
     fi
 }
 
