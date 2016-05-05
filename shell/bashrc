@@ -109,7 +109,7 @@ fi
 # export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64:~/lib
 # export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/x86_64:~/lib
 export EDITOR=emacs
-export HOMEBREW_GITHUB_API_TOKEN=f5e03b10bbad0f5ecc7c0edf60280eff4c87d1c2
+# export HOMEBREW_GITHUB_API_TOKEN=<your GitHub API token>
 export PKG_CONFIG_PATH=/opt/X11/lib/pkgconfig
 
 ~/.update_brew.sh
