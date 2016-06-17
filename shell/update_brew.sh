@@ -11,17 +11,20 @@ fi
 if [ ! -f ~/.homebrew_updated ]; then
   echo "Checking for homebrew updates"
   brew update >~/.homebrew_update_log 2>&1
-#    BREW_CNT=`brew list | wc -l | awk '{ print $1 }'`
-#    IDX=0
-#    for f in `brew list`; do
-#	IDX=$(( $IDX + 1 ))
-#	printf "%s\r" "Performing homebrew update $IDX of $BREW_CNT"
-#	brew upgrade $f >~/.homebrew_upgrade_log 2>&1
-#    done
-#    echo
+  date +%Y%m%d >~/.homebrew_updated
+  if [ `date +%w` -eq 1 ]; then
+    BLIST=`brew list`
+    echo "Upgrading via uninstall / reinstall..."
+    brew uninstall --force $BLIST >~/.homebrew_upgrade_log 2>&1
+    echo "Uninstall complete..."
+    brew install $BLIST >~/.homebrew_upgrade_log 2>&1
+    echo "Reinstall complete..."
+  fi
 elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
   if [ -d ~/Dropbox ]; then
     brew list >~/Dropbox/brew_list.log
+  else
+    brew list >~/.brew_list.log
   fi
   date +%Y%m%d >~/.homebrew_updated
   if [ -f ~/.homebrew_update_log ]; then
@@ -32,18 +35,12 @@ elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
   fi
   echo "Checking for homebrew updates"
   brew update >~/.homebrew_update_log 2>&1
-
-  if [ `date +%w` -eq 0 ]; then
+  if [ `date +%w` -eq 1 ]; then
     BLIST=`brew list`
+    echo "Upgrading via uninstall / reinstall..."
     brew uninstall --force $BLIST >~/.homebrew_upgrade_log 2>&1
+    echo "Uninstall complete..."
     brew install $BLIST >~/.homebrew_upgrade_log 2>&1
+    echo "Reinstall complete..."
   fi
-#    BREW_CNT=`brew list | wc -l | awk '{ print $1 }'`
-#    IDX=0
-#    for f in `brew list`; do
-#	IDX=$(( $IDX + 1 ))
-#	printf "%s\r" "Performing homebrew update $IDX of $BREW_CNT"
-#	brew upgrade $f >~/.homebrew_upgrade_log 2>&1
-#    done
-#    echo
 fi
