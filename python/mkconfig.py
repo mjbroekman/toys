@@ -86,6 +86,23 @@ def test_addr(addr):
     return addr
 
 
+def test_email(email):
+    """
+    Check / correct email address
+    """
+    isc_where = email.find('@iscinternal.com')
+    int_where = email.find('@intersystems.com')
+    at_where = email.find('@')
+    if isc_where < 1 and int_where < 1 and at_where < 1:
+        usage("Invalid email address: " + email)
+        sys.exit(2)
+    elif isc_where > 1 and int_where > 1:
+        usage("Invalid email address: " + email)
+        sys.exit(2)
+
+    return email
+
+
 def main(args):
     """
     Process options and figure out what we're creating
@@ -107,6 +124,10 @@ def main(args):
             config['check'] = arg
         elif opt == "-a":
             config['address'] = test_addr(arg)
+        elif opt == "-c":
+            config['check'] = arg
+        elif opt == "-e":
+            config['email'] = test_email(arg)
 
 
 if __name__ == '__main__':
