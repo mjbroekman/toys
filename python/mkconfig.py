@@ -108,7 +108,41 @@ def create_host(host_name):
     try:
         os.system(cmd)
     except OSError as err:
-        print('An error occurred while trying to run:\n' + cmd + '\n' + COMMIT)
+        print('An error occurred while trying to run:\n' + cmd)
+        print(err)
+        sys.exit(2)
+    except Warning:
+        print('Warning occurred: ' + sys.exc_info()[0])
+    else:
+        os.system(COMMIT)
+
+
+def create_svc(config):
+    """
+    Create a new host object
+    """
+    svc_name = config['svc']
+    host_name = config['host']
+    chk_cmd = ''
+    for var in config['vars']:
+        if var.find("check_command") == 0:
+            chk_cmd = var.split(':')[1]
+
+    if chk_cmd == '':
+        chk_cmd = svc_name
+
+    cmd = ADD_SVC + " name=" + svc_name + " host_name=" + host_name + " check_command=" + chk_cmd
+    print('Do you wish to create a new service object? (y/N) ', end='')
+    ans = sys.stdin.read(1)
+    if ans != "y" and ans != "Y":
+        print('Create the service first using:')
+        print(cmd)
+        sys.exit(1)
+
+    try:
+        os.system(cmd)
+    except OSError as err:
+        print('An error occurred while trying to run:\n' + cmd)
         print(err)
         sys.exit(2)
     except Warning:
