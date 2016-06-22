@@ -170,7 +170,6 @@ def check_config(config):
         sys.exit(2)
 
     config['host_conf'] = CONF_DIR + config['host'] + ".conf"
-    print(config)
 
     if not os.path.isfile(config['host_conf']):
         first_dot = config['host'].find('.')
@@ -197,16 +196,19 @@ def check_config(config):
         if not os.path.isdir(config['svc_dir']):
             os.system(CMD_DBG + "mkdir " + config['svc_dir'])
 
-        print(config)
-
         config['svc_conf'] = config['svc_dir'] + "/" + config['svc'] + ".conf"
         if not os.path.isfile(config['svc_conf']):
             print('No such service file (' + config['svc_conf'] + ') found. Creating it.')
             print('')
             create_svc(config)
 
-    print(config)
     return config
+
+
+def var_index(var,varlist):
+    """
+    Search a list of strings for a variable
+    """
 
 
 def update_host(config):
@@ -216,7 +218,18 @@ def update_host(config):
     ifile = open(config['host_conf'], 'r')
     icontent = ifile.readlines()
 
-    print(icontent.replace('\n  ', '\n\t'))
+    if len(config['vars']) == 0:
+        for line in icontent:
+            print(line)
+    else:
+        for var in config['vars']:
+            vname = (var.split(':'))[0]
+            vval = (var.split(':', 1))[1]
+            where = var_index(vname, icontent)
+            print(vname)
+            print(vval)
+
+    # print(icontent.replace('\n  ', '\n\t'))
 
 def update_svc(config):
     """
@@ -245,7 +258,6 @@ def main(args):
             config['vars'].append(arg)
 
     config = check_config(config)
-    print(config)
     # Now we have a config that has been confirmed to have all the necessary
     # files and directories.
     if config['svc'] is None:
