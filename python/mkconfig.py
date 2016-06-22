@@ -205,36 +205,33 @@ def check_config(config):
     return config
 
 
-def var_index(var,varlist):
+def update_conf(config):
     """
-    Search a list of strings for a variable
+    Update a configuration object
     """
 
+    if config['svc'] is None:
+        ifile = open(config['host_conf'], 'r')
+    else:
+        ifile = open(config['svc_conf'], 'r')
 
-def update_host(config):
-    """
-    Update a host object
-    """
-    ifile = open(config['host_conf'], 'r')
     icontent = ifile.readlines()
 
     if len(config['vars']) == 0:
         for line in icontent:
             print(line)
     else:
+        new_conf = {}
+        # parse the current config into a dictionary
+
         for var in config['vars']:
             vname = (var.split(':'))[0]
             vval = (var.split(':', 1))[1]
-            where = var_index(vname, icontent)
-            print(vname)
-            print(vval)
+            # check if a key exists for vname
+            # set the config dictionary to new value
+            new_conf[vname] = vval
 
     # print(icontent.replace('\n  ', '\n\t'))
-
-def update_svc(config):
-    """
-    Update a service object
-    """
 
 
 def main(args):
@@ -260,10 +257,8 @@ def main(args):
     config = check_config(config)
     # Now we have a config that has been confirmed to have all the necessary
     # files and directories.
-    if config['svc'] is None:
-        update_host(config)
-    else:
-        update_svc(config)
+    update_conf(config)
+
 
 if __name__ == '__main__':
     try:
