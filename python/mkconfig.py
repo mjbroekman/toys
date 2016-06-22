@@ -5,17 +5,19 @@ Take command-line input and write out config files in various formats
 Author: Maarten Broekman
 '''
 from __future__ import print_function
-import json
-import sys
 import getopt
+import json
 import os
-import string
 import socket
+import string
+import sys
 
-CONF_DIR = "/etc/icinga2/repository.d/hosts"
+CONF_DIR = "/etc/icinga2/repository.d/hosts/"
 ADD_HOST = "/usr/sbin/icinga2 repository host add"
 ADD_SVC = "/usr/sbin/icinga2 repository service add"
 COMMIT = "/usr/sbin/icinga2 repository commit"
+
+CMD_DBG = "echo "
 
 def usage(msg):
     """
@@ -56,7 +58,9 @@ def init_config():
     cfg['host'] = None          # -H
     cfg['svc'] = None           # -S
     cfg['vars'] = []            # -V
-
+    cfg['host_conf'] = None     # initialize host config file location
+    cfg['svc_conf'] = None      # initialize service config file location
+    cfg['svc_dir'] = None       # initialize service config directory location
     return cfg
 
 
@@ -99,8 +103,8 @@ def create_host(host_name):
     """
     cmd = ADD_HOST + " name=" + host_name + " address=" + host_name + " check_command=hostalive"
     print('Do you wish to create a new host object? (y/N) ', end='')
-    ans = sys.stdin.read(1)
-    if ans != "y" and ans != "Y":
+    ans = sys.stdin.readline()
+    if ans[:1] != "y" and ans[:1] != "Y":
         print('Create the host first using:')
         print(cmd)
         sys.exit(1)
@@ -122,19 +126,21 @@ def create_svc(config):
     Create a new host object
     """
     svc_name = config['svc']
+    print(config)
     host_name = config['host']
     chk_cmd = ''
+
     for var in config['vars']:
         if var.find("check_command") == 0:
-            chk_cmd = var.split(':')[1]
+            chk_cmd = (var.split(':'))[1]
 
     if chk_cmd == '':
         chk_cmd = svc_name
 
     cmd = ADD_SVC + " name=" + svc_name + " host_name=" + host_name + " check_command=" + chk_cmd
     print('Do you wish to create a new service object? (y/N) ', end='')
-    ans = sys.stdin.read(1)
-    if ans != "y" and ans != "Y":
+    ans = sys.stdin.readline()
+    if ans[:1] != "y" and ans[:1] != "Y":
         print('Create the service first using:')
         print(cmd)
         sys.exit(1)
@@ -155,30 +161,67 @@ def check_config(config):
     """
     Validate that all the config settings are 'okay'
     """
-    host_conf = CONF_DIR + "/" + config['host'] + ".conf"
+    if not os.path.isdir(CONF_DIR):
+        usage('This should be run on the Icinga2 server. Unable to find ' + CONF_DIR)
+        sys.exit(5)
 
-    try:
-        host_file = open(host_conf, 'r')
-    except IOError:
+    if config['host'] is None:
+        usage('Please specify a host to modify')
+        sys.exit(2)
+
+    config['host_conf'] = CONF_DIR + config['host'] + ".conf"
+    print(config)
+
+    if not os.path.isfile(config['host_conf']):
         first_dot = config['host'].find('.')
-        short_host = config['host'][:first_dot]
-        short_conf = CONF_DIR + "/" + short_host + ".conf"
+        if first_dot > 0:
+            short_host = config['host'][:first_dot]
+            short_conf = CONF_DIR + short_host + ".conf"
+        else:
+            short_host = config['host']
+            short_conf = CONF_DIR + short_host + ".conf"
+
         print('Short hostname = ' + short_host)
-        try:
-            host_file = open(short_conf, 'r')
-        except IOError:
-            print('No such host file (' + host_conf + ' or ' + short_conf + ') found.')
+        if os.path.isfile(short_conf):
+            config['host'] = short_host
+            config['host_conf'] = short_conf
+        else:
+            print('No such host file (' + config['host_conf'] + ' or ' + short_conf + ') found.')
             print('')
             create_host(config['host'])
-            # sys.exit(3)
-        else:
-            host_file.close()
-            config['host'] = short_host
-            host_conf = short_conf
-    else:
-        host_file.close()
 
-    # host_file exists, so we know the host's service directory _might_ exist
+    print(config)
+
+    if config['svc'] is not None:
+        config['svc_dir'] = CONF_DIR + config['host']
+        if not os.path.isdir(config['svc_dir']):
+            os.system(CMD_DBG + "mkdir " + config['svc_dir'])
+
+        print(config)
+
+        config['svc_conf'] = config['svc_dir'] + "/" + config['svc'] + ".conf"
+        if not os.path.isfile(config['svc_conf']):
+            print('No such service file (' + config['svc_conf'] + ') found. Creating it.')
+            print('')
+            create_svc(config)
+
+    print(config)
+    return config
+
+
+def update_host(config):
+    """
+    Update a host object
+    """
+    ifile = open(config['host_conf'], 'r')
+    icontent = ifile.readlines()
+
+    print(icontent.replace('\n  ', '\n\t'))
+
+def update_svc(config):
+    """
+    Update a service object
+    """
 
 
 def main(args):
@@ -201,8 +244,14 @@ def main(args):
         elif opt == "-V":
             config['vars'].append(arg)
 
+    config = check_config(config)
     print(config)
-    check_config(config)
+    # Now we have a config that has been confirmed to have all the necessary
+    # files and directories.
+    if config['svc'] is None:
+        update_host(config)
+    else:
+        update_svc(config)
 
 if __name__ == '__main__':
     try:
