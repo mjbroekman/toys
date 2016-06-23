@@ -235,8 +235,6 @@ def parse_conf(cfgfile):
             if current_dict is not None:
                 current_dict = None
 
-    print(new_conf)
-
     return new_conf
 
 def update_conf(config):
