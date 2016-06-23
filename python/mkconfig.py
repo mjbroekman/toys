@@ -205,6 +205,40 @@ def check_config(config):
     return config
 
 
+def parse_conf(cfgfile):
+    """
+    Parse a configuration file into a dictionary that we can manipulate
+    """
+    new_conf = {}
+    # parse the current config into a dictionary
+    new_conf['dicts'] = []
+    new_conf['import'] = []
+    current_dict = None
+    for line in cfgfile:
+        line = line.strip()
+        if line.find('object') == 0:
+            new_conf['object'] = line
+        elif line.find('{') > 0:
+            new_conf['dicts'].append(line)
+            current_dict = line
+            new_conf[line] = {}
+        elif line.find('import') >= 0:
+            new_conf['import'].append(line)
+        elif line.find('=') >= 0:
+            vname = (line.split(' = '))[0]
+            vval = (line.split(' = '))[1]
+            if current_dict is None:
+                new_conf[vname] = vval
+            else:
+                new_conf[current_dict][vname] = vval
+        elif line.find('}') >= 0:
+            if current_dict is not None:
+                current_dict = None
+
+    print(new_conf)
+
+    return new_conf
+
 def update_conf(config):
     """
     Update a configuration object
@@ -221,8 +255,7 @@ def update_conf(config):
         for line in icontent:
             print(line)
     else:
-        new_conf = {}
-        # parse the current config into a dictionary
+        new_conf = parse_conf(icontent)
 
         for var in config['vars']:
             vname = (var.split(':'))[0]
