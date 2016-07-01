@@ -40,7 +40,7 @@ def usage(msg):
     print(' To remove a variable, prepend the variable_name with -')
     print('')
     print('Example 1: Simple override of the SSH check to use a different command')
-    print(' mkconfig.py -H nismaster.iscinternal.com -S ssh -V', end='')
+    print(' mkconfig.py -H host.domain.com -S ssh -V', end='')
     print(' check_command:tcp -V vars.tcp_port:22')
     print('')
     print('Example 2: More complex setting of HTTP checks on the host')
@@ -84,13 +84,13 @@ def test_email(email):
     """
     Check / correct email address
     """
-    isc_where = email.find('@iscinternal.com')
-    int_where = email.find('@intersystems.com')
+    e1_where = email.find('@domain1.com')
+    e2_where = email.find('@domain2.com')
     at_where = email.find('@')
-    if isc_where < 1 and int_where < 1 and at_where < 1:
+    if e1_where < 1 and e2_where < 1 and at_where < 1:
         usage("Invalid email address: " + email)
         sys.exit(2)
-    elif isc_where > 1 and int_where > 1:
+    elif e1_where > 1 and e2_where > 1:
         usage("Invalid email address: " + email)
         sys.exit(2)
 
