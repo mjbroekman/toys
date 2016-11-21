@@ -147,8 +147,7 @@ def main(args):
     complexity = 4
     for opt, arg in opts:
         if opt == '-h':
-            print('passgen.py [-x exclude_char ...] [-h] [-d] [-1|2|3|4|5] [-l length]')
-            print('')
+            print('passgen.py [-x exclude_char ...] [-h] [-d] [-1|2|3|4|5] [-l length]\n')
             print('-x - Exclude a character.  Can be used multiple times.')
             print('-l - Password length. Defaults to 32.')
             print('-d - Debug mode.  printmore info.')
@@ -157,7 +156,6 @@ def main(args):
             print('-3 - Letters and numbers.')
             print('-4 - Letters, numbers, and .,?/"\':;-_')
             print('-5 - Default. Letters, numbers, and ' + string.punctuation)
-            print('')
             sys.exit()
         if opt == '-x':
             exclude = str(arg) + str(exclude)

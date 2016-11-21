@@ -6,12 +6,20 @@ This can have interesting results if the book isn't in English.
 
 Author: Maarten Broekman
 '''
-import os, sys, getopt, random, string, urllib2, time
+# import os
+# import sys
+from urllib.request import urlopen
+from urllib.error import HTTPError
+import random
+import time
 from bs4 import BeautifulSoup
 
 def get_random_book():
+    """
+    Retrieve something from Gutenberg
+    """
     baseurl = "http://www.gutenberg.org/ebooks"
-    response = urllib2.urlopen(baseurl + '/search/?sort_order=random')
+    response = urlopen(baseurl + '/search/?sort_order=random')
     url = baseurl
     html = response.read()
     soup = BeautifulSoup(html)
@@ -25,21 +33,24 @@ def get_random_book():
     return url
 
 def main():
+    """
+    Main loop. Loop until satisfied with sentence.
+    """
     while 1 == 1:
         book = get_random_book()
 
         try:
-            response = urllib2.urlopen(book)
-        except urllib2.HTTPError:
-            print "Unable to retrieve book from " + book
+            response = urlopen(book)
+        except HTTPError:
+            print("Unable to retrieve book from " + book)
         else:
             html = response.read()
-            text = string.join(html.split()," ")
-            text = text.replace('"',"")
+            text = html.split().join(" ")
+            text = text.replace('"', "")
 
             sentences = text.split(". ")
-            print "From " + book
-            print sentences[random.randrange(len(sentences))]
+            print("From " + book)
+            print(sentences[random.randrange(len(sentences))])
 
             break
 

@@ -8,6 +8,9 @@
 if [ ! -x /usr/local/bin/brew ]; then
     exit 0
 fi
+if [ ! -z "$ITERM_PROFILE" ]; then
+    exit 0
+fi
 if [ ! -f ~/.homebrew_updated ]; then
   echo "Checking for homebrew updates"
   brew update >~/.homebrew_update_log 2>&1
