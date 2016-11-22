@@ -1,0 +1,2 @@
+{"schedule": "R/2015-02-17T22:00:00Z/PT5M","name": "Report FTP Login Failures","command": "perl /tools/ftp/login-failure_monitor.pl 2>&1","owner": "email@domain.tld","async": false}
+
