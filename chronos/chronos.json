@@ -1,0 +1,9 @@
+{
+  "schedule": "R/2015-02-17T20:00:00Z/PT12H",
+  "name": "SAMPLE_JOB1",
+  "epsilon": "PT15M",
+  "command": "echo \"Success from `hostname`\" | mail -s SAMPLE_JOB1 email@domain.tld >> /tmp/JOB1_OUT",
+  "owner": "email@domain.tld",
+  "async": false
+}
+

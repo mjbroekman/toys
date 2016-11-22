@@ -1,0 +1,2 @@
+{"schedule": "R/2015-02-17T21:30:00Z/PT1H","name": "Monitor FTP Logins","epsilon": "PT5M","command": "perl /tools/ftp/monitor_ftp_logins.pl 2>&1","owner": "email@domain.tld","async": false}
+

@@ -1,0 +1,1 @@
+{"schedule": "R/2015-03-18T22:00:00Z/PT15M","name": "Rsync Home directories","command": "/usr/bin/rsync -vax --stats --delete /site1/home/ /home/ 2>&1","owner": "email@domain.tld","async": false}
