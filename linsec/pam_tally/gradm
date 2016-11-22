@@ -1,0 +1,6 @@
+auth	   required   pam_tally.so onerr=fail deny=5 unlock_time=900
+account	   required   pam_tally.so
+@include common-auth
+@include common-account
+@include common-session-noninteractive
+
