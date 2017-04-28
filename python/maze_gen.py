@@ -142,4 +142,4 @@ if __name__ == "__main__":
         banner()
         main(sys.argv[1:])
     except KeyboardInterrupt:
-        print('Exiting...')
+        print('Aborting...')
