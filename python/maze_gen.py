@@ -111,16 +111,16 @@ def gen_maze(height, width, debug):
             while col < (width - 1):
                 maze[row][col] = ":-"
                 col += 1
-            maze[row][col] = ".\n"
+            maze[row][col] = ":\n"
         elif (row % 2) == 1:
             if debug > 0:
                 print('generating corridor row ' + str(row))
-            maze[row][0] = "I "
+            maze[row][0] = "| "
             col = 1
             while col < (width - 1):
                 maze[row][col] = "  "
                 col += 1
-            maze[row][col] = "I\n"
+            maze[row][col] = "|\n"
         row += 1
 
     print_maze(maze)
