@@ -1,0 +1,12 @@
+function basevars() {
+    local -a BVI 
+    BVI[0]=PATH
+    BVI[1]=CLASSPATH
+    BVI[2]=LD_LIBRARY_PATH
+
+    if [ -z "${BASEVAR[$1]}" -a -n "${!BVI[$1]}" -a -z "${BASEVAR_LOCKS[$1]}" ]; then
+        BASEVAR[$1]=${!BVI[$1]%:}
+    fi
+
+    BASEVAR_LOCKS[$1]=1
+}

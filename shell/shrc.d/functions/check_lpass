@@ -1,0 +1,14 @@
+function check_lpass () {
+    if [ -x /usr/local/bin/lpass ]; then
+        if [ ! -f ~/.lpass/session_server ]; then
+            lpass login ${LPASS_U:-username}
+        else
+            stime=`ls -l ~/.lpass/session_server  | awk '{ print $6,$7 }'`
+            dtime=`date | awk '{ print $2,$3 }'`
+            if [ "$stime" != "$dtime" ]; then
+                lpass logout --force
+                lpass login ${LPASS_U:-username}
+            fi
+        fi
+    fi
+}

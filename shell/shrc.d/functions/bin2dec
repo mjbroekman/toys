@@ -1,0 +1,3 @@
+function bin2dec() {
+    echo $'ibase=2\nobase=1010\n'$1$'\nquit\n' | bc
+}

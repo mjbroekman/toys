@@ -1,0 +1,53 @@
+# Run a command repeatedly, clearing the screen between each display.
+# Adds the ability to control how long to sleep between each run, and
+# to prepend and/or append text to the each line before displaying it.
+#
+# Finally, the function completely executes the command and buffers the
+# output before clearing the screen and displaying the new data.  This
+# is to prevent the screen going blank for a period of time while the
+# the data is generated.
+#
+# This is intended to provide a cheap interface to create a top-like
+# status reporting tool.  
+#
+#     repeat [ -s <sleep time> ] [ -p <text to prepend on each line> ]
+#            [ -r <text to append on each line> ] <command...>
+#
+# e.g.
+#
+#     repeat -s 15 sudo -u ettqa1 mon js cmt_q1b_d_runbox
+#
+function repeat() {
+    local OUTPUT LINE OPTNAME 
+    local OPTIND=1
+    local OPTARG=""
+    local OPTERR=1
+    local SLEEP=10
+    local PREFIX=""
+    local POSTFIX=""
+
+    while builtin getopts ":s:p:r:h" OPTNAME; do
+        case $OPTNAME in
+            s) SLEEP=$OPTARG;;
+            p) PREFIX=$OPTARG;;
+            r) POSTFIX=$OPTARG;;
+            h) echo "repeat [ -s <sleep time> ] [ -p <text to prepend> ]"
+               echo "       [ -r <text to append on each line> ] <command...>"
+               true; return;
+               ;;
+            ?) echo "repeat: parse error on argument $OPTARG"; false; return;;
+            :) echo "error: missing argument"; false; return;;
+            *) echo "Eepp!!";;
+        esac
+    done
+    shift $(($OPTIND - 1))
+
+    while true; do
+        OUTPUT=`builtin eval "$*"`
+        clear
+        IFS=$BASH_IFS_LINE
+        for LINE in $OUTPUT; do echo $PREFIX$LINE$POSTFIX; done
+        IFS=$BASH_IFS_WORD
+        sleep $SLEEP
+    done
+}

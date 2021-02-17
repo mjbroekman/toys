@@ -1,0 +1,3 @@
+function listFuncs() {
+  set | grep "() $" | grep -v grep | sed -e "s/() $//" | sort
+}

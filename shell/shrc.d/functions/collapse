@@ -1,0 +1,14 @@
+function collapse() {
+  if [ -z "${HOME}" ]; then
+    HOME=~
+  fi
+  if [ -x /usr/bin/perl ]; then
+    /usr/bin/perl ${HOME}/bin/shrinkpath >/tmp/${USERNAME}.paths
+  elif [ -x /usr/local/bin/perl5 ]; then
+    /usr/local/bin/perl5 ${HOME}/bin/shrinkpath >/tmp/${USERNAME}.paths
+  else
+    ${HOME}/bin/shrinkpath > /tmp/${USERNAME}.paths
+  fi
+  . /tmp/${USERNAME}.paths
+  rm /tmp/${USERNAME}.paths
+}

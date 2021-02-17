@@ -1,0 +1,20 @@
+function brew_path {
+    BPATH=$1
+    if [ ! -z "$BPATH" ]; then
+        if [ -d "$BPATH/bin" ]; then
+            export PATH="$BPATH/bin:$PATH"
+        fi
+        if [ -d "$BPATH/sbin" ]; then
+            export PATH="$BPATH/sbin:$PATH"
+        fi
+        if [ -d "$BPATH/lib" ]; then
+            export LD_FLAGS="-L$BPATH/lib $LD_FLAGS"
+        fi
+        if [ -d "$BPATH/lib/pkgconfig" ]; then
+            export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$BPATH/lib/pkgconfig"
+        fi
+        if [ -d "$BPATH/include" ]; then
+            export CPP_FLAGS="-I$BPATH/include $CPP_FLAGS"
+        fi
+    fi
+}

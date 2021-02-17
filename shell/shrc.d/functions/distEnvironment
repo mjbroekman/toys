@@ -1,0 +1,26 @@
+function distEnvironment() {
+  local THIS_HOST=`hostname`
+
+  local FILELIST=".profile .bashrc .rhosts .sun_aliases .shell_functions .terminfo .termcap .Xdefaults .Xauthority bin"
+  local PROG=""
+  local D F H
+
+  if [ -z "${HOME}" ]; then return; fi
+  if [ -z "$1" ]; then return; fi
+
+  for H in $HOSTLIST; do
+    if [ "$H" = "$1" ]; then
+      H=$1;
+      case $H in
+          *) D="";;
+      esac
+      echo $H:$D
+
+      if [ -z "$PROG" ]; then
+        echo "No dist'ing to $H."
+      else
+        $PROG $FILELIST $H:$D/
+      fi
+    fi
+  done
+}

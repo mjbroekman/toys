@@ -1,0 +1,17 @@
+function rotate() {
+    FILE=$1
+    COUNT=$2
+
+    if [ -e ${FILE} ]; then
+        while [ $COUNT -ge 0 ]; do
+            TGT=$(( $COUNT ))
+            COUNT=$(( $COUNT - 1 ))
+
+            if [ -e ${FILE}.${COUNT} ]; then
+                mv ${FILE}.${COUNT} ${FILE}.${TGT}
+            fi
+        done
+
+        mv ${FILE} ${FILE}.0
+    fi
+}
