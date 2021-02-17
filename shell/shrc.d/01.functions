@@ -1,0 +1,8 @@
+__git_printf_supports_v=
+printf -v __git_printf_supports_v -- '%s' yes >/dev/null 2>&1
+
+export fpath=( ~/.shrc.d/functions $fpath )
+#autoload `ls ~/.shrc.d/functions/`
+for f in `ls ~/.shrc.d/functions/*`; do
+    source $f
+done

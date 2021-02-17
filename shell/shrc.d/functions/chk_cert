@@ -1,0 +1,12 @@
+function chk_cert () {
+  if [ ! -z "$1" ]; then
+    if [ `echo $2 | wc -c` -le 1 ]; then
+      echo | openssl s_client -connect $1 2>/dev/null | openssl x509 -text
+    else
+      echo | openssl s_client -connect $1 2>/dev/null | openssl x509 -noout $2
+    fi
+  else
+    echo "chk_cert hostname:port [\"x509-options\"]"
+  fi
+  set +x
+}

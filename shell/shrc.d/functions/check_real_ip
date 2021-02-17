@@ -1,0 +1,27 @@
+function check_real_ip {
+    REAL_IPV4=
+    REAL_IPV6=
+    update=0
+    if [ -f ~/.real_ip ]; then
+        . ~/.real_ip
+    fi
+    chk_ipv4=`curl -Ls4 http://icanhazip.com/`
+#    chk_ipv6=`curl -Ls6 http://icanhazip.com/`
+    if [ "$REAL_IPV4" != "$chk_ipv4" ]; then
+        echo "Old IPv4: $REAL_IPV4"
+        echo "New IPv4: $chk_ipv4"
+        update=1
+    fi
+#    if [ "$REAL_IPV6" != "$chk_ipv6" ]; then
+#        echo "Old IPv6: $REAL_IPV6"
+#        echo "New IPv6: $chk_ipv6"
+#        update=1
+#    fi
+    if [ $update -eq 1 ]; then
+        read -q -k1 "YN?Update with new IPs? "
+        if [[ $YN =~ ^y$ ]] then
+            echo 'export REAL_IPV4='$chk_ipv4 >~/.real_ip
+#            echo 'export REAL_IPV6='$chk_ipv6 >>~/.real_ip
+        fi
+    fi
+}

@@ -1,0 +1,3 @@
+function dec2hex() { 
+    echo $'ibase=10\nobase=16\n'$1$'\nquit\n' | bc
+}

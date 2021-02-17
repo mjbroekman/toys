@@ -1,0 +1,3 @@
+function dec2bin() {
+    echo $'ibase=10\nobase=2\n'$1$'\nquit\n' | bc
+}

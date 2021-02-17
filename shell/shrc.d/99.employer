@@ -1,0 +1,3 @@
+EMPL_D="whodunit.com"
+EMPL_U="idundidit"
+export LPASS_U="$EMPL_U@$EMPL_D"

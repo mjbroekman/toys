@@ -1,0 +1,8 @@
+alias reset_brew='cd /usr/local; sudo git fetch; sudo git reset --hard origin/master'
+alias cssh="~/git/github/cssh/csshx/csshX"
+
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+fi
+
