@@ -5,7 +5,8 @@
 # Description:
 #   Code snippet to keep brew installs updated on MacOS X
 #
-if [ ! -x /usr/local/bin/brew ]; then
+BREW=`which brew`
+if [ -z "$BREW" -o ! -x $BREW ]; then
     exit 0
 fi
 # if [ ! -z "$ITERM_PROFILE" ]; then
@@ -16,7 +17,7 @@ if [ ! -f ~/.homebrew_updated ]; then
   brew update >~/.homebrew_update_log 2>&1
   date +%Y%m%d >~/.homebrew_updated
   if [ `date +%w` -eq 1 ]; then
-    BLIST=`brew list --formula`
+    BLIST=`brew list --formula | grep -v openjdk`
     BCNT=`echo $BLIST | awk '{ print NF }'`
     echo "Upgrading $BCNT via uninstall / reinstall..."
     brew uninstall --force $BLIST >>~/.homebrew_upgrade_log 2>&1
@@ -44,7 +45,7 @@ elif [ `date +%Y%m%d` -gt `cat ~/.homebrew_updated` ]; then
   echo "Checking for homebrew updates"
   brew update >~/.homebrew_update_log 2>&1
   if [ `date +%w` -eq 1 ]; then
-    BLIST=`brew list --formula`
+    BLIST=`brew list --formula | grep -v openjdk`
     BCNT=`echo $BLIST | awk '{ print NF }'`
     echo "Upgrading $BCNT via uninstall / reinstall..."
     brew uninstall --force $BLIST >>~/.homebrew_upgrade_log 2>&1
