@@ -12,6 +12,10 @@ fi
 # if [ ! -z "$ITERM_PROFILE" ]; then
 #     exit 0
 # fi
+while [ `ps -aef | grep -v grep | grep -c xcode-select` -gt 0 ]; do
+  echo "Sleeping while xcode command-line tools are installed"
+  sleep 1
+done
 if [ ! -f ~/.homebrew_updated ]; then
   echo "Checking for homebrew updates"
   brew update >~/.homebrew_update_log 2>&1
