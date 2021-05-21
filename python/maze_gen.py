@@ -3,12 +3,14 @@
 Python implementation of the 'Amazing' program found in
 David Ahl's "Basic Computer Games" book published by
 Workman Publishing, Copyright 1978 Creative Computing.
+
+Original AppleBASIC program author: Jack Hauber of Windsor, Connecticut
 """
 from __future__ import print_function
 
 import getopt
 import sys
-import random
+import secrets
 
 
 def banner():
@@ -41,13 +43,15 @@ def usage():
 
 # global variables for now since we were dealing with an AppleBASIC program to start with
 w = []
-v = []
+v1 = []
 maze = []
 q = 0
 z = 0
 c = 1
 r = 0
 s = 1
+v = 0  # vertical
+h = 0  # horizontal
 height = 0
 width = 0
 debug = 0
@@ -60,6 +64,8 @@ def main(args):
     global height
     global width
     global debug
+    global h  # horizontal
+    global v  # vertical
 
     try:
         opts, args = getopt.getopt(args, "c:r:dh")
@@ -73,29 +79,29 @@ def main(args):
         if opt == "-h":
             usage()
         if opt == "-r":
-            height = int(arg)
+            v = int(arg)
         if opt == "-c":
-            width = int(arg)
+            h = int(arg)
 
     try:
-        while int(height) not in range(10, 100):
+        while int(v) not in range(10, 100):
             print("Enter the height (10 - 100) ", end="")
-            height = input()
-            height = int(height)
+            v = input()
+            v = int(v)
     except ValueError:
         print("Really? Trying using an integer.")
         sys.exit()
 
-    if (height % 2) == 0:
+    if (v % 2) == 0:
         if debug > 0:
             print("adding row to the end")
-        height += 1
+        v += 1
 
     try:
-        while int(width) not in range(10, 75):
+        while int(h) not in range(10, 75):
             print("Enter the width (10 - 75): ", end="")
-            width = input()
-            width = int(width)
+            h = input()
+            h = int(h)
     except ValueError:
         print("Really? Try using an integer.")
         sys.exit()
@@ -108,46 +114,108 @@ def gen_maze():
     Create the maze
     """
     global w
-    global v
+    global v  # vertical
     global r
     global c
     global s
     global q
     global z
+    global h  # horizontal
     global height
     global width
     global debug
     global maze
+    global v1
 
-    w = [["X" for x in range(width)] for y in range(height)]
-    v = [["X" for x in range(width)] for y in range(height)]
-    maze = [["X" for x in range(width)] for y in range(height)]
-    row = 0
-    x = int(random.random() * width)
-    for i in range(width - 2):
+    w = [["X" for x in range(h)] for y in range(v)]
+    v1 = [["X" for x in range(h)] for y in range(v)]
+    maze = [["X" for x in range(h)] for y in range(v)]
+    q = 0  # line 160
+    z = 0
+    x = int(secrets.randbelow(h))
+    for i in range(1, h):
         if i == x:
-            maze[row][i] = ". "
-        else:
-            maze[row][i] = ".-"
-    maze[row][width - 1] = ".\n"
+            print(".  ")
+        print(".--")
+
+    print(".\n")  # line 190
 
     w[x][1] = c
     c += 1
-    r = x
+    r = x  # line 200
+    s = 1
+    twosixty()
+
+
+def twoten():
+    """
+    line 210
+    """
+    global r
+    global h
+    global s
+    global v
+    if r != h:
+        twoforty()
+    if s != v:
+        twothirty()
+
+    twotwenty()
+
+
+def twotwenty():
+    """
+    line 220
+    """
+    global r
+    global s
+    r = 1  # line 220
+    s = 1
+    twofifty()
+
+
+def twothirty():
+    """
+    line 230
+    """
+    global r
+    global s
+    r = 1
+    s += 1
+    twofifty()
+
+
+def twoforty():
+    """
+    line 240
+    """
+    global r
+    r += 1
+
+    twofifty()
+
+
+def twofifty():
+    """
+    line 250
+    """
+    global w
+    global r
+    global s
+    if w[r][s] != 0:
+        twoten()
+
     twosixty()
 
 
 def twosixty():
     """
-    control loop?
+    line 260
     """
-    global w
-    global v
     global r
-    global c
+    global w
     global s
-    global q
-    global z
+    global v
 
     if r - 1 == 0:  # 260
         fivethirty()
@@ -157,52 +225,307 @@ def twosixty():
         threeninety()
     if w[r][s - 1] != 0:  # 280
         threeninety()
-    if r == height:  # 290
+    if r == v:  # 290
         threethirty()
-    if w[r + 1][s] != 0:
+    if w[r + 1][s] != 0:  # 300
         threethirty()
-    x = int(random.random() * width)
+
+    threeten()
+
+
+def threeten():
+    """
+    line 310
+    """
+    x = int(secrets.randbelow(3))
     if x == 0:
         seveninety()
-    elif x == 1:
+    if x == 1:
         eighttwenty()
-    else:
-        eightsixty()
+    eightsixty()
 
 
 def threethirty():
     """
-    more control
+    line 330
     """
-    global w
     global v
-    global r
-    global c
     global s
     global q
-    global z
 
-    print("330")
+    if s != v:
+        threeforty()
+    if z == 1:
+        threeseventy()
+    q = 1
+    threefifty()
 
 
-def fivethirty():
+def threeforty():
     """
-    more controls
+    line 340
     """
     global w
-    global v
     global r
-    global c
     global s
-    global q
-    global z
 
-    print("530")
+    if w[r][s + 1] != 0:
+        threeseventy()
+
+    threefifty()
+
+
+def threefifty():
+    """
+    line 350
+    """
+    x = int(secrets.randbelow(3))
+    if x == 0:
+        seveninety()
+    if x == 1:
+        eighttwenty()
+
+    nineten()
+
+
+def threeseventy():
+    """
+    line 370
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        seveninety()
+
+    eighttwenty()
 
 
 def threeninety():
     """
-    even more controls
+    line 390
+    """
+    global w
+    global v
+    global r
+    global s
+    global q
+    global z
+
+    if r == v:
+        fourseventy()
+
+    if w[r + 1][s] != 0:
+        fourseventy()
+
+    if s != v:  # 405
+        fourtwenty()
+
+    if z == 1:  # 410
+        fourfifty()
+
+    q = 1  # 415
+    fourthirty()
+
+
+def fourtwenty():
+    """
+    line 420
+    """
+    global w
+    global r
+    global s
+
+    if w[r][s + 1] != 0:
+        fourfifty()
+
+    fourthirty()
+
+
+def fourthirty():
+    """
+    line 430
+    """
+    x = int(secrets.randbelow(3))
+    if x == 0:
+        seveninety()
+    if x == 1:
+        eightsixty()
+
+    nineten()
+
+
+def fourfifty():
+    """
+    line 450
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        seveninety()
+
+    eightsixty()
+
+
+def fourseventy():
+    """
+    line 470
+    """
+    global v
+    global s
+    global q
+    global z
+
+    if s != v:
+        fourninety()
+    if z == 1:
+        seveninety()
+    q = 1
+    fivehundred()
+
+
+def fourninety():
+    """
+    line 490
+    """
+    global w
+    global r
+    global s
+
+    if w[r][s + 1] != 0:
+        seveninety()
+
+    fivehundred()
+
+
+def fivehundred():
+    """
+    line 500
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        seveninety()
+
+    nineten()
+
+
+def fivetwenty():
+    """
+    line 520
+    """
+    seveninety()
+
+
+def fivethirty():
+    """
+    line 530
+    """
+    global w
+    global v
+    global r
+    global s
+    global q
+    global z
+
+    if s - 1 == 0:
+        sixseventy()
+    if w[r][s - 1] != 0:
+        sixseventy()
+    if r == v:
+        sixten()
+    if w[r + 1][s] != 0:
+        sixten()
+    if s != v:
+        fivesixty()
+    if z == 1:
+        fiveninety()
+    q = 1
+    fiveseventy()
+
+
+def fivesixty():
+    """
+    line 560
+    """
+    global w
+    global r
+    global s
+
+    if w[r][s + 1] != 0:
+        fiveninety()
+
+    fiveseventy()
+
+
+def fiveseventy():
+    """
+    line 570
+    """
+    x = int(secrets.randbelow(3))
+    if x == 0:
+        eighttwenty()
+    if x == 1:
+        eightsixty()
+
+    nineten()
+
+
+def fiveninety():
+    """
+    line 590
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        eighttwenty()
+
+    eightsixty()
+
+
+def sixten():
+    """
+    line 610
+    """
+    global v
+    global s
+    global q
+    global z
+
+    if s != v:
+        sixthirty()
+    if z == 1:
+        sixsixty()
+    q = 1
+    sixforty()
+
+
+def sixthirty():
+    """
+    line 630
+    """
+    if w[r][s + 1] != 0:
+        sixsixty()
+
+    sixforty()
+
+
+def sixforty():
+    """
+    line 640
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        eighttwenty()
+
+    nineten()
+
+
+def sixsixty():
+    """
+    line 660
+    """
+    eighttwenty()
+
+
+def sixseventy():
+    """
+    line 670
     """
     global w
     global v
@@ -212,12 +535,97 @@ def threeninety():
     global q
     global z
 
-    print("390")
+    if r == v:
+        sevenforty()
+    if w[r + 1][s] != 0:
+        sevenforty()
+    if s != v:
+        sevenhundred()
+    if z == 1:
+        seventhirty()
+    q = 1
+    eightthirty()
+
+
+def sevenhundred():
+    """
+    line 700
+    """
+    global w
+    global r
+    global s
+
+    if w[r][s + 1] != 0:
+        seventhirty()
+
+    seventen()
+
+
+def seventen():
+    """
+    line 710
+    """
+    x = int(secrets.randbelow(2))
+    if x == 0:
+        eightsixty()
+
+    nineten()
+
+
+def seventhirty():
+    """
+    line 730
+    """
+    eightsixty()
+
+
+def sevenforty():
+    """
+    line 740
+    """
+    global v
+    global s
+    global q
+    global z
+
+    if s != v:
+        sevensixty()
+    if z == 1:
+        seveneighty()
+    q = 1
+    sevenseventy()
+
+
+def sevensixty():
+    """
+    line 760
+    """
+    global w
+    global r
+    global s
+    if w[r][s + 1] != 0:
+        seveneighty()
+
+    sevenseventy()
+
+
+def sevenseventy():
+    """
+    line 770
+    """
+    nineten()
+
+
+def seveneighty():
+    """
+    line 780
+    """
+    onekay()
 
 
 def seveninety():
     """
-    control stuff
+    line 790
     """
     global w
     global v
@@ -232,7 +640,7 @@ def seveninety():
 
 def eighttwenty():
     """
-    things
+    line 820
     """
     global w
     global v
@@ -245,9 +653,24 @@ def eighttwenty():
     print("820")
 
 
+def eightthirty():
+    """
+    line 830
+    """
+    global w
+    global v
+    global r
+    global c
+    global s
+    global q
+    global z
+
+    print("830")
+
+
 def eightsixty():
     """
-    stuff
+    line 860
     """
     global w
     global v
@@ -258,39 +681,35 @@ def eightsixty():
     global z
 
     print("860")
-    # while row < height:
-    #     if row in (0, height - 1):
-    #         if debug > 0:
-    #             print("generating border row " + str(row))
-    #         col = 0
-    #         while col < (width - 1):
-    #             if col == ran:
-    #                 maze[row][col] = ". "
-    #             else:
-    #                 maze[row][col] = ".-"
-    #             col += 1
-    #         maze[row][col] = ".\n"
-    #     elif (row % 2) == 0:
-    #         if debug > 0:
-    #             print("generating wall row " + str(row))
-    #         maze[row][0] = ":-"
-    #         col = 1
-    #         while col < (width - 1):
-    #             maze[row][col] = ":-"
-    #             col += 1
-    #         maze[row][col] = ":\n"
-    #     elif (row % 2) == 1:
-    #         if debug > 0:
-    #             print("generating corridor row " + str(row))
-    #         maze[row][0] = "| "
-    #         col = 1
-    #         while col < (width - 1):
-    #             maze[row][col] = "  "
-    #             col += 1
-    #         maze[row][col] = "|\n"
-    #     row += 1
-    #
-    # print_maze(maze)
+
+
+def nineten():
+    """
+    line 910
+    """
+    global w
+    global v
+    global r
+    global c
+    global s
+    global q
+    global z
+
+    print("910")
+
+
+def onekay():
+    """
+    line 1000
+    """
+    global w
+    global v
+    global r
+    global c
+    global s
+    global q
+    global z
+    print("1000")
 
 
 def print_maze():
