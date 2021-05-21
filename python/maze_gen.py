@@ -135,10 +135,10 @@ def gen_maze():
     x = int(secrets.randbelow(h))
     for i in range(1, h):
         if i == x:
-            print(".  ")
-        print(".--")
+            print(".  ", end="")
+        print(".--", end="")
 
-    print(".\n")  # line 190
+    print(".")  # line 190
 
     w[x][1] = c
     c += 1
