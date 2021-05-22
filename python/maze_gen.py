@@ -44,7 +44,6 @@ def usage():
 # global variables for now since we were dealing with an AppleBASIC program to start with
 w = []
 v1 = []
-maze = []
 q = 0
 z = 0
 c = 1
@@ -52,8 +51,6 @@ r = 0
 s = 1
 v = 0  # vertical
 h = 0  # horizontal
-height = 0
-width = 0
 debug = 0
 
 
@@ -61,8 +58,6 @@ def main(args):
     """
     Main processing of arguments
     """
-    global height
-    global width
     global debug
     global h  # horizontal
     global v  # vertical
@@ -121,15 +116,11 @@ def gen_maze():
     global q
     global z
     global h  # horizontal
-    global height
-    global width
     global debug
-    global maze
     global v1
 
     w = [["X" for x in range(h)] for y in range(v)]
     v1 = [["X" for x in range(h)] for y in range(v)]
-    maze = [["X" for x in range(h)] for y in range(v)]
     q = 0  # line 160
     z = 0
     x = int(secrets.randbelow(h))
@@ -202,6 +193,7 @@ def twofifty():
     global w
     global r
     global s
+
     if w[r][s] != 0:
         twoten()
 
@@ -628,14 +620,24 @@ def seveninety():
     line 790
     """
     global w
-    global v
+    global v1
     global r
-    global c
     global s
+    global c
+    global v
+    global h
     global q
-    global z
 
-    print("790")
+    w[r - 1][s] = c
+    c = c + 1  # line 800
+    v1[r - 1][s] = 2
+    r = r - 1
+
+    if c == ((h * v) + 1):  # line 810
+        tenten()
+
+    q = 0  # line 815
+    twosixty()
 
 
 def eighttwenty():
@@ -643,29 +645,34 @@ def eighttwenty():
     line 820
     """
     global w
-    global v
     global r
     global c
     global s
-    global q
-    global z
 
-    print("820")
+    w[r][s - 1] = c
+    eightthirty()
 
 
 def eightthirty():
     """
     line 830
     """
-    global w
-    global v
-    global r
     global c
+    global v1
+    global r
     global s
+    global h
+    global v
     global q
-    global z
 
-    print("830")
+    c = c + 1  # line 830
+    v1[r][s - 1] = 1  # line 840
+    s = s - 1
+    if c == ((h * v) + 1):
+        tenten()
+
+    q = 0  # line 850
+    twosixty()
 
 
 def eightsixty():
@@ -673,14 +680,45 @@ def eightsixty():
     line 860
     """
     global w
-    global v
+    global v1
     global r
     global c
     global s
-    global q
-    global z
 
-    print("860")
+    w[r + 1][s] = c
+    c = c + 1
+    if v1[r][s] == 0:
+        eighteighty()
+    v1[r][s] = 3
+    eightninety()
+
+
+def eighteighty():
+    """
+    line 880
+    """
+    global v1
+    global r
+    global s
+
+    v1[r][s] = 2
+    eightninety()
+
+
+def eightninety():
+    """
+    line 890
+    """
+    global r
+    global c
+    global h
+    global v
+
+    r = r + 1
+    if c == ((h * v) + 1):  # line 900
+        tenten()
+
+    fivethirty()  # line 905
 
 
 def nineten():
@@ -688,42 +726,114 @@ def nineten():
     line 910
     """
     global w
-    global v
+    global v1
     global r
+    global s
     global c
+    global q
+
+    if q == 1:
+        ninesixty()
+
+    w[r][s + 1] = c  # line 920
+    c = c + 1
+    if v1[r][s] == 0:
+        nineforty()
+
+    v1[r][s] = 3  # line 930
+    ninefifty()
+
+
+def nineforty():
+    """
+    line 940
+    """
+    global v1
+    global r
+    global s
+
+    v1[r][s] = 1
+    ninefifty()
+
+
+def ninefifty():
+    """
+    line 950
+    """
+    global s
+    global c
+    global h
+    global v
+    s = s + 1
+    if c == ((h * v) + 1):
+        tenten()
+
+    twosixty()  # line 955
+
+
+def ninesixty():
+    """
+    line 960
+    """
+    global z
+    global v1
+    global r
     global s
     global q
-    global z
 
-    print("910")
+    z = 1
+    if v1[r][s] == 0:  # line 970
+        nineeighty()
+    v1[r][s] = 3  # line 975
+    q = 0
+    onekay()
+
+
+def nineeighty():
+    """
+    line 980
+    """
+    global v1
+    global r
+    global s
+    global q
+
+    v1[r][s] = 1
+    q = 0
+    r = 1
+    s = 1
+    twofifty()
 
 
 def onekay():
     """
     line 1000
     """
-    global w
+    twoten()
+
+
+def tenten():
+    """
+    line 1010
+    """
+    global v1
     global v
-    global r
-    global c
-    global s
-    global q
-    global z
-    print("1000")
+    global h
 
-
-def print_maze():
-    """
-    Print out the maze
-    """
-    global maze
-    row = 0
-    while row < len(maze):
-        col = 0
-        while col < len(maze[row]):
-            print(maze[row][col], end="")
-            col += 1
-        row += 1
+    for j in range(0, v - 1):
+        print("I", end="")  # line 1011
+        for i in range(0, h - 1):  # line 1012
+            if v1[i][j] < 2:  # line 1013
+                print("  I", end="")  # line 1030
+            if v1[i][j] >= 2:
+                print("   ", end="")  # line 1020
+        print("")  # line 1041
+        for i in range(0, h - 1):  # line 1043
+            if v1[i][j] == 0 or v1[i][j] == 2:  # lines 1045, 1050
+                print(":--", end="")  # line 1060
+            if v1[i][j] != 0 and v1[i][j] != 2:  # line 1051
+                print(":  ", end="")
+        print(".")  # line 1071
 
 
 if __name__ == "__main__":
