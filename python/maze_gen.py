@@ -8,9 +8,22 @@ Original AppleBASIC program author: Jack Hauber of Windsor, Connecticut
 """
 from __future__ import print_function
 
+import inspect
 import getopt
 import sys
 import secrets
+import numpy as np
+
+
+def LINE():
+    """
+    Return program line number
+    """
+    caller = inspect.stack()[1]  # 0 represents this line; 1 represents line at caller
+    frame = caller[0]
+    info = inspect.getframeinfo(frame)
+
+    return info.lineno
 
 
 def banner():
@@ -43,15 +56,12 @@ def usage():
 
 # global variables for now since we were dealing with an AppleBASIC program to start with
 w = []
-v1 = []
-q = 0
-z = 0
-c = 1
-r = 0
-s = 1
-v = 0  # vertical
-h = 0  # horizontal
+outmask = []
+maze = []
+q = z = 0
+currow = curcol = maxrow = maxcol = maxval = 0
 debug = 0
+c = 1
 
 
 def main(args):
@@ -59,8 +69,17 @@ def main(args):
     Main processing of arguments
     """
     global debug
-    global h  # horizontal
-    global v  # vertical
+    global maxcol  # horizontal
+    global curcol
+    global maxrow  # vertical
+    global currow
+    global w
+    global outmask
+    global maze
+    global c
+    global q
+    global z
+    global maxval
 
     try:
         opts, args = getopt.getopt(args, "c:r:dh")
@@ -74,67 +93,45 @@ def main(args):
         if opt == "-h":
             usage()
         if opt == "-r":
-            v = int(arg)
+            maxrow = int(arg)
         if opt == "-c":
-            h = int(arg)
+            maxcol = int(arg)
 
-    try:
-        while int(v) not in range(10, 100):
-            print("Enter the height (10 - 100) ", end="")
-            v = input()
-            v = int(v)
-    except ValueError:
-        print("Really? Trying using an integer.")
-        sys.exit()
+    while int(maxrow) not in range(3, 100):
+        print("Enter the height (3 - 100) ", end="")
+        maxrow = input()
+        maxrow = int(maxrow)
 
-    if (v % 2) == 0:
-        if debug > 0:
-            print("adding row to the end")
-        v += 1
+    if (maxrow % 2) == 0:
+        maxrow += 1
 
-    try:
-        while int(h) not in range(10, 75):
-            print("Enter the width (10 - 75): ", end="")
-            h = input()
-            h = int(h)
-    except ValueError:
-        print("Really? Try using an integer.")
-        sys.exit()
+    while int(maxcol) not in range(3, 75):
+        print("Enter the width (3 - 75): ", end="")
+        maxcol = input()
+        maxcol = int(maxcol)
 
-    gen_maze()
+    w = np.array([[0 for x in range(maxcol + 1)] for y in range(maxrow + 1)])
+    outmask = np.array([[0 for x in range(maxcol + 1)] for y in range(maxrow + 1)])
+    maze = np.array([[".--" for x in range(maxcol + 1)] for y in range(maxrow + 1)])
 
+    maxval = (maxcol * maxrow) + 1
+    q = z = 0  # line 160
 
-def gen_maze():
-    """
-    Create the maze
-    """
-    global w
-    global v  # vertical
-    global r
-    global c
-    global s
-    global q
-    global z
-    global h  # horizontal
-    global debug
-    global v1
+    x = int(secrets.randbelow(maxcol))
+    for i in range(0, maxcol + 1):
+        for j in range(0, maxrow + 1):
+            if i == x and j == 0:
+                print("Setting entrance to ", j, i, "at", LINE())
+                maze[j][i] = "| |"
+                w[j][i] = c
+            else:
+                maze[j][i] = "X"
 
-    w = [["X" for x in range(h)] for y in range(v)]
-    v1 = [["X" for x in range(h)] for y in range(v)]
-    q = 0  # line 160
-    z = 0
-    x = int(secrets.randbelow(h))
-    for i in range(1, h):
-        if i == x:
-            print(".  ", end="")
-        print(".--", end="")
+        maze[j][maxcol] = "X"
 
-    print(".")  # line 190
-
-    w[x][1] = c
     c += 1
-    r = x  # line 200
-    s = 1
+    curcol = x  # line 200
+    currow = 1
     twosixty()
 
 
@@ -142,47 +139,22 @@ def twoten():
     """
     line 210
     """
-    global r
-    global h
-    global s
-    global v
-    if r != h:
-        twoforty()
-    if s != v:
-        twothirty()
+    global currow
+    global maxcol
+    global curcol
+    global maxrow
 
-    twotwenty()
+    if curcol < maxcol:
+        curcol += 1
+        twofifty()
 
+    if currow < maxrow:
+        curcol = 0
+        currow += 1
+        twofifty()
 
-def twotwenty():
-    """
-    line 220
-    """
-    global r
-    global s
-    r = 1  # line 220
-    s = 1
-    twofifty()
-
-
-def twothirty():
-    """
-    line 230
-    """
-    global r
-    global s
-    r = 1
-    s += 1
-    twofifty()
-
-
-def twoforty():
-    """
-    line 240
-    """
-    global r
-    r += 1
-
+    currow = 1  # line 220
+    curcol = 1
     twofifty()
 
 
@@ -191,11 +163,16 @@ def twofifty():
     line 250
     """
     global w
-    global r
-    global s
+    global currow
+    global curcol
 
-    if w[r][s] != 0:
-        twoten()
+    try:
+        if w[currow][curcol] != 0:
+            twoten()
+    except IndexError:
+        print(LINE(), w)
+        print(LINE(), maze)
+        sys.exit()
 
     twosixty()
 
@@ -204,31 +181,24 @@ def twosixty():
     """
     line 260
     """
-    global r
+    global currow
     global w
-    global s
-    global v
+    global curcol
+    global maxrow
 
-    if r - 1 == 0:  # 260
+    if currow - 1 == 0:  # if we're on the second row of the maze
         fivethirty()
-    if w[r - 1][s] != 0:  # 265
+    if w[currow - 1][curcol] != 0:  # 265
         fivethirty()
-    if s - 1 == 0:  # 270
+    if curcol - 1 == 0:  # 270
         threeninety()
-    if w[r][s - 1] != 0:  # 280
+    if w[currow][curcol - 1] != 0:  # 280
         threeninety()
-    if r == v:  # 290
+    if curcol == maxcol:  # 290
         threethirty()
-    if w[r + 1][s] != 0:  # 300
+    if w[currow + 1][curcol] != 0:  # 300
         threethirty()
 
-    threeten()
-
-
-def threeten():
-    """
-    line 310
-    """
     x = int(secrets.randbelow(3))
     if x == 0:
         seveninety()
@@ -241,29 +211,18 @@ def threethirty():
     """
     line 330
     """
-    global v
-    global s
+    global maxrow
+    global currow
     global q
 
-    if s != v:
-        threeforty()
+    if currow != maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):
+        threeseventy()
+    elif currow != maxrow:
+        threefifty()
+
     if z == 1:
         threeseventy()
     q = 1
-    threefifty()
-
-
-def threeforty():
-    """
-    line 340
-    """
-    global w
-    global r
-    global s
-
-    if w[r][s + 1] != 0:
-        threeseventy()
-
     threefifty()
 
 
@@ -296,39 +255,40 @@ def threeninety():
     line 390
     """
     global w
-    global v
-    global r
-    global s
+    global maxrow
+    global currow
+    global curcol
     global q
     global z
 
-    if r == v:
-        fourseventy()
+    if curcol == maxcol:
+        if currow < maxrow:
+            fivehundred()
+        if z == 1:
+            seveninety()
+        q = 1
+        fivehundred()
 
-    if w[r + 1][s] != 0:
-        fourseventy()
+    if w[currow + 1][curcol] != 0:
+        if currow < maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):
+            seveninety()
+        elif currow < maxrow:
+            fivehundred()
 
-    if s != v:  # 405
-        fourtwenty()
+        if z == 1:
+            seveninety()
+        q = 1
+        fivehundred()
+
+    if currow < maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):  # 405
+        fourfifty()
+    elif currow < maxrow:
+        fourthirty()
 
     if z == 1:  # 410
         fourfifty()
 
     q = 1  # 415
-    fourthirty()
-
-
-def fourtwenty():
-    """
-    line 420
-    """
-    global w
-    global r
-    global s
-
-    if w[r][s + 1] != 0:
-        fourfifty()
-
     fourthirty()
 
 
@@ -356,37 +316,6 @@ def fourfifty():
     eightsixty()
 
 
-def fourseventy():
-    """
-    line 470
-    """
-    global v
-    global s
-    global q
-    global z
-
-    if s != v:
-        fourninety()
-    if z == 1:
-        seveninety()
-    q = 1
-    fivehundred()
-
-
-def fourninety():
-    """
-    line 490
-    """
-    global w
-    global r
-    global s
-
-    if w[r][s + 1] != 0:
-        seveninety()
-
-    fivehundred()
-
-
 def fivehundred():
     """
     line 500
@@ -398,51 +327,60 @@ def fivehundred():
     nineten()
 
 
-def fivetwenty():
-    """
-    line 520
-    """
-    seveninety()
-
-
 def fivethirty():
     """
     line 530
     """
     global w
-    global v
-    global r
-    global s
+    global maxrow
+    global currow
+    global curcol
     global q
     global z
 
-    if s - 1 == 0:
-        sixseventy()
-    if w[r][s - 1] != 0:
-        sixseventy()
-    if r == v:
-        sixten()
-    if w[r + 1][s] != 0:
-        sixten()
-    if s != v:
-        fivesixty()
+    if curcol - 1 == 0 or w[currow][curcol - 1] != 0:
+        if curcol == maxcol or (currow < maxrow and w[currow + 1][curcol] != 0):
+            if currow < maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):
+                twoten()
+            elif currow != maxrow:
+                nineten()
+
+            if z == 1:
+                twoten()
+            q = 1
+            nineten()
+
+        if currow < maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):
+            eightsixty()
+        elif currow < maxrow:
+            x = int(secrets.randbelow(2))
+            if x == 0:
+                eightsixty()
+            nineten()
+        if z == 1:
+            eightsixty()
+        q = 1
+        eightthirty()
+
+    if curcol == maxcol or (currow < maxrow and w[currow + 1][curcol] != 0):
+        if currow != maxrow and (curcol < maxcol and w[currow][curcol + 1] != 0):
+            eighttwenty()
+        elif currow != maxrow:
+            sixforty()
+        if z == 1:
+            eighttwenty()
+        q = 1
+        sixforty()
+
+    if curcol < maxcol and w[currow][curcol + 1] != 0:
+        fiveninety()
+    elif curcol < maxcol:
+        fiveseventy()
+
     if z == 1:
         fiveninety()
+
     q = 1
-    fiveseventy()
-
-
-def fivesixty():
-    """
-    line 560
-    """
-    global w
-    global r
-    global s
-
-    if w[r][s + 1] != 0:
-        fiveninety()
-
     fiveseventy()
 
 
@@ -470,33 +408,6 @@ def fiveninety():
     eightsixty()
 
 
-def sixten():
-    """
-    line 610
-    """
-    global v
-    global s
-    global q
-    global z
-
-    if s != v:
-        sixthirty()
-    if z == 1:
-        sixsixty()
-    q = 1
-    sixforty()
-
-
-def sixthirty():
-    """
-    line 630
-    """
-    if w[r][s + 1] != 0:
-        sixsixty()
-
-    sixforty()
-
-
 def sixforty():
     """
     line 640
@@ -508,133 +419,25 @@ def sixforty():
     nineten()
 
 
-def sixsixty():
-    """
-    line 660
-    """
-    eighttwenty()
-
-
-def sixseventy():
-    """
-    line 670
-    """
-    global w
-    global v
-    global r
-    global c
-    global s
-    global q
-    global z
-
-    if r == v:
-        sevenforty()
-    if w[r + 1][s] != 0:
-        sevenforty()
-    if s != v:
-        sevenhundred()
-    if z == 1:
-        seventhirty()
-    q = 1
-    eightthirty()
-
-
-def sevenhundred():
-    """
-    line 700
-    """
-    global w
-    global r
-    global s
-
-    if w[r][s + 1] != 0:
-        seventhirty()
-
-    seventen()
-
-
-def seventen():
-    """
-    line 710
-    """
-    x = int(secrets.randbelow(2))
-    if x == 0:
-        eightsixty()
-
-    nineten()
-
-
-def seventhirty():
-    """
-    line 730
-    """
-    eightsixty()
-
-
-def sevenforty():
-    """
-    line 740
-    """
-    global v
-    global s
-    global q
-    global z
-
-    if s != v:
-        sevensixty()
-    if z == 1:
-        seveneighty()
-    q = 1
-    sevenseventy()
-
-
-def sevensixty():
-    """
-    line 760
-    """
-    global w
-    global r
-    global s
-    if w[r][s + 1] != 0:
-        seveneighty()
-
-    sevenseventy()
-
-
-def sevenseventy():
-    """
-    line 770
-    """
-    nineten()
-
-
-def seveneighty():
-    """
-    line 780
-    """
-    onekay()
-
-
 def seveninety():
     """
     line 790
     """
     global w
-    global v1
-    global r
-    global s
+    global outmask
+    global currow
+    global curcol
     global c
-    global v
-    global h
     global q
+    global maxval
 
-    w[r - 1][s] = c
-    c = c + 1  # line 800
-    v1[r - 1][s] = 2
-    r = r - 1
+    w[currow - 1][curcol] = c
+    c += 1  # line 800
+    outmask[currow - 1][curcol] = 2
+    currow -= 1
 
-    if c == ((h * v) + 1):  # line 810
-        tenten()
+    if c == maxval:  # line 810
+        print_maze()
 
     q = 0  # line 815
     twosixty()
@@ -645,11 +448,11 @@ def eighttwenty():
     line 820
     """
     global w
-    global r
+    global currow
     global c
-    global s
+    global curcol
 
-    w[r][s - 1] = c
+    w[currow][curcol - 1] = c
     eightthirty()
 
 
@@ -658,18 +461,17 @@ def eightthirty():
     line 830
     """
     global c
-    global v1
-    global r
-    global s
-    global h
-    global v
+    global outmask
+    global currow
+    global curcol
     global q
+    global maxval
 
-    c = c + 1  # line 830
-    v1[r][s - 1] = 1  # line 840
-    s = s - 1
-    if c == ((h * v) + 1):
-        tenten()
+    c += 1  # line 830
+    outmask[currow][curcol - 1] = 1  # line 840
+    curcol -= 1
+    if c == maxval:
+        print_maze()
 
     q = 0  # line 850
     twosixty()
@@ -680,43 +482,24 @@ def eightsixty():
     line 860
     """
     global w
-    global v1
-    global r
+    global outmask
+    global currow
     global c
-    global s
+    global curcol
 
-    w[r + 1][s] = c
-    c = c + 1
-    if v1[r][s] == 0:
-        eighteighty()
-    v1[r][s] = 3
-    eightninety()
+    if currow < maxrow:
+        w[currow + 1][curcol] = c
+    c += 1
+    if outmask[currow][curcol] == 0:
+        outmask[currow][curcol] = 2
+    else:
+        outmask[currow][curcol] = 3
 
-
-def eighteighty():
-    """
-    line 880
-    """
-    global v1
-    global r
-    global s
-
-    v1[r][s] = 2
-    eightninety()
-
-
-def eightninety():
-    """
-    line 890
-    """
-    global r
-    global c
-    global h
-    global v
-
-    r = r + 1
-    if c == ((h * v) + 1):  # line 900
-        tenten()
+    currow += 1
+    if currow > maxrow:
+        currow = maxrow
+    if c == maxval:  # line 900
+        print_maze()
 
     fivethirty()  # line 905
 
@@ -726,114 +509,74 @@ def nineten():
     line 910
     """
     global w
-    global v1
-    global r
-    global s
+    global outmask
+    global currow
+    global curcol
     global c
     global q
+    global z
 
     if q == 1:
-        ninesixty()
+        z = 1
+        if outmask[currow][curcol] == 0:  # line 970
+            outmask[currow][curcol] = 1
+            q = 0
+            currow = 0
+            curcol = 0
+            twofifty()
+        else:
+            outmask[currow][curcol] = 3  # line 975
+            q = 0
+            twoten()
 
-    w[r][s + 1] = c  # line 920
-    c = c + 1
-    if v1[r][s] == 0:
-        nineforty()
+    if curcol < maxcol:
+        w[currow][curcol + 1] = c  # line 920
+    c += 1
+    if outmask[currow][curcol] == 0:
+        outmask[currow][curcol] = 1
+    else:
+        outmask[currow][curcol] = 3  # line 930
 
-    v1[r][s] = 3  # line 930
-    ninefifty()
-
-
-def nineforty():
-    """
-    line 940
-    """
-    global v1
-    global r
-    global s
-
-    v1[r][s] = 1
-    ninefifty()
-
-
-def ninefifty():
-    """
-    line 950
-    """
-    global s
-    global c
-    global h
-    global v
-    s = s + 1
-    if c == ((h * v) + 1):
-        tenten()
+    curcol += 1
+    if curcol > maxcol:
+        curcol = maxcol
+    if c == maxval:
+        print_maze()
 
     twosixty()  # line 955
 
 
-def ninesixty():
-    """
-    line 960
-    """
-    global z
-    global v1
-    global r
-    global s
-    global q
-
-    z = 1
-    if v1[r][s] == 0:  # line 970
-        nineeighty()
-    v1[r][s] = 3  # line 975
-    q = 0
-    onekay()
-
-
-def nineeighty():
-    """
-    line 980
-    """
-    global v1
-    global r
-    global s
-    global q
-
-    v1[r][s] = 1
-    q = 0
-    r = 1
-    s = 1
-    twofifty()
-
-
-def onekay():
-    """
-    line 1000
-    """
-    twoten()
-
-
-def tenten():
+def print_maze():
     """
     line 1010
     """
-    global v1
-    global v
-    global h
+    global outmask
+    global maxrow
+    global maxcol
+    global maze
 
-    for j in range(0, v - 1):
-        print("I", end="")  # line 1011
-        for i in range(0, h - 1):  # line 1012
-            if v1[i][j] < 2:  # line 1013
-                print("  I", end="")  # line 1030
-            if v1[i][j] >= 2:
-                print("   ", end="")  # line 1020
-        print("")  # line 1041
-        for i in range(0, h - 1):  # line 1043
-            if v1[i][j] == 0 or v1[i][j] == 2:  # lines 1045, 1050
-                print(":--", end="")  # line 1060
-            if v1[i][j] != 0 and v1[i][j] != 2:  # line 1051
-                print(":  ", end="")
-        print(".")  # line 1071
+    print(LINE(), outmask)
+    for j in range(0, maxrow):
+        # print("I", end="")  # line 1011
+        for i in range(0, maxcol):  # line 1012
+            if int(outmask[j][i]) < 2:  # line 1013
+                maze[j][i] = "  I"
+                # print("  I", end="")  # line 1030
+            if int(outmask[j][i]) >= 2:
+                maze[j][i] = "   "
+                # print("   ", end="")  # line 1020
+        # print("")  # line 1041
+        for i in range(0, maxcol):  # line 1043
+            if int(outmask[j][i]) == 0 or int(outmask[j][i]) == 2:  # lines 1045, 1050
+                maze[j][i] = ":--"
+                # print(":--", end="")  # line 1060
+            if int(outmask[j][i]) != 0 and int(outmask[j][i]) != 2:  # line 1051
+                maze[j][i] = ":  "
+                # print(":  ", end="")
+        # print(".")  # line 1071
+
+    print(maze)
+    sys.exit()
 
 
 if __name__ == "__main__":
