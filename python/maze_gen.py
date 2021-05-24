@@ -73,7 +73,7 @@ def main(args):
     global curcol
     global maxrow  # vertical
     global currow
-    global w
+    global walls
     global visited
     global maze
     global c
@@ -110,7 +110,7 @@ def main(args):
         maxcol = input()
         maxcol = int(maxcol)
 
-    w = np.array([[0 for x in range(maxcol + 1)] for y in range(maxrow + 1)])
+    walls = np.array([[0 for x in range(maxcol + 1)] for y in range(maxrow + 1)])
     visited = np.array([[0 for x in range(maxcol + 1)] for y in range(maxrow + 1)])
     maze = np.array([[".--" for x in range(maxcol + 1)] for y in range(maxrow + 1)])
 
@@ -162,7 +162,7 @@ def twofifty():
     """
     line 250
     """
-    global w
+    global walls
     global currow
     global curcol
 
@@ -170,7 +170,7 @@ def twofifty():
         if walls[currow][curcol] != 0:
             twoten()
     except IndexError:
-        print(LINE(), w)
+        print(LINE(), walls)
         print(LINE(), maze)
         sys.exit()
 
@@ -182,7 +182,7 @@ def twosixty():
     line 260
     """
     global currow
-    global w
+    global walls
     global curcol
     global maxrow
 
@@ -254,7 +254,7 @@ def threeninety():
     """
     line 390
     """
-    global w
+    global walls
     global maxrow
     global currow
     global curcol
@@ -331,7 +331,7 @@ def fivethirty():
     """
     line 530
     """
-    global w
+    global walls
     global maxrow
     global currow
     global curcol
@@ -423,7 +423,7 @@ def seveninety():
     """
     line 790
     """
-    global w
+    global walls
     global visited
     global currow
     global curcol
@@ -447,7 +447,7 @@ def eighttwenty():
     """
     line 820
     """
-    global w
+    global walls
     global currow
     global c
     global curcol
@@ -481,7 +481,7 @@ def eightsixty():
     """
     line 860
     """
-    global w
+    global walls
     global visited
     global currow
     global c
@@ -508,7 +508,7 @@ def nineten():
     """
     line 910
     """
-    global w
+    global walls
     global visited
     global currow
     global curcol
