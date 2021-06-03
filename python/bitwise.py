@@ -8,21 +8,12 @@ import argparse
 import time
 
 
-def usage():
-    """
-    Usage/syntax
-    """
-    print("$ bitwise.py [-h] [-d|-v] [-o operator] -1 first_arg -2 second_arg")
-
-
 def main(argv):
     """
     Argument parsing
     """
 
     parser = argparse.ArgumentParser(description="Perform bitwise operations on arguments")
-    parser.add_argument("--verbose", "-v", action="count", default=0)
-    parser.add_argument("--debug", "-d", action="count", default=0)
     parser.add_argument(
         "--op",
         "-o",
@@ -32,22 +23,27 @@ def main(argv):
         help="Specify the bitwise operator that you want to display the output for",
     )
     parser.add_argument(
+        "--shift",
+        "-s",
+        type=int,
+        action="store",
+        required=any(x in ["lshift", "rshift", "left", "right"] for x in sys.argv),
+        help="the number of bits to shift left or right",
+    )
+    parser.add_argument(
         "--arg1",
         "-1",
         action="store",
-        required=True,
         help="First (or only) argument to operate on",
     )
     parser.add_argument(
         "--arg2",
         "-2",
         action="store",
+        required=any(x in ["and", "or", "xor"] for x in sys.argv),
         help="Second argument to operation for and, or, and xor",
     )
     args = parser.parse_args(argv)
-    if args.op in ["and", "xor", "or"] and args.arg2 is None:
-        print("Missing second argument for '" + args.op + "' operation.")
-        parser.parse_args(["-h"])
 
     if args.op == "and":
         perform_and(args.arg1, args.arg2)
@@ -58,9 +54,9 @@ def main(argv):
     if args.op == "not":
         perform_not(args.arg1)
     if args.op in ["lshift", "left"]:
-        perform_left(args.arg1)
+        perform_left(args.arg1, args.shift)
     if args.op in ["rshift", "right"]:
-        perform_right(args.arg1)
+        perform_right(args.arg1, args.shift)
 
 
 def perform_and(arg1, arg2):
@@ -193,20 +189,68 @@ def perform_not(arg1):
     print("'" + final + "'", " = ", getbits(final))
 
 
-def perform_left(arg1):
+def perform_left(arg1, shift):
     """
     Perform and illustrate the 'left shift' operation
     """
     first = getbits(arg1)
-    print(first)
+    print("Performing bitwise (logical) left shift on:\n")
+    print(arg1 + ":\n", first)
+    for c in arg1:
+        print("'" + c + "' = ascii", ord(c), end="\t")
+    print("")
+    result = []
+    for b in range(int(len(first) / 8)):
+        shifted = first[b * 8 : (b + 1) * 8]
+        print(frombits(shifted), ":")
+        s = shift
+        while s > 0:
+            shifted = shifted[1:8]
+            shifted.extend([0])
+            print("", shifted, end="\r")
+            time.sleep(1.5)
+            s -= 1
+        print("")
+        result.extend(shifted)
+
+    final = frombits(result)
+    print("Result is:")
+    print("'" + final + "'", " = ", getbits(final))
+    for c in final:
+        print("'" + c + "' = ascii", ord(c), end="\t")
+    print("")
 
 
-def perform_right(arg1):
+def perform_right(arg1, shift):
     """
     Perform and illustrate the 'right shift' operation
     """
     first = getbits(arg1)
-    print(first)
+    print("Performing bitwise (logical) right shift on:\n")
+    print(arg1 + ":\n", first)
+    for c in arg1:
+        print("'" + c + "' = ascii", ord(c), end="\t")
+    print("")
+    result = []
+    for b in range(int(len(first) / 8)):
+        shifted = first[b * 8 : (b + 1) * 8]
+        print(frombits(shifted), ":")
+        s = shift
+        while s > 0:
+            shifted = shifted[0:7]
+            shifted.insert(0, 0)
+            print("", shifted)
+            time.sleep(1.5)
+            s -= 1
+        print("")
+        result.extend(shifted)
+
+    final = frombits(result)
+    print("Result is:")
+    print("'" + final + "'", " = ", getbits(final))
+    for c in final:
+        print("'" + c + "' = ascii", ord(c), end="\t")
+    print("")
 
 
 def getbits(arg):
