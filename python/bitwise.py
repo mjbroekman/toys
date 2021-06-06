@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Perform and illustrate bitwise math
 """
@@ -86,7 +86,7 @@ def perform_and(arg1, arg2):
         else:
             result.extend([0])
         print("", result, end="\r")
-        time.sleep(1)
+        time.sleep(0.1)
     print("\n")
 
     final = frombits(result)
@@ -121,7 +121,7 @@ def perform_or(arg1, arg2):
         else:
             result.extend([0])
         print("", result, end="\r")
-        time.sleep(1)
+        time.sleep(0.1)
     print("\n")
 
     final = frombits(result)
@@ -156,7 +156,7 @@ def perform_xor(arg1, arg2):
         else:
             result.extend([0])
         print("", result, end="\r")
-        time.sleep(1)
+        time.sleep(0.1)
     print("\n")
 
     final = frombits(result)
@@ -181,7 +181,7 @@ def perform_not(arg1):
         else:
             result.extend([0])
         print("", result, end="\r")
-        time.sleep(1)
+        time.sleep(0.1)
     print("\n")
 
     final = frombits(result)
@@ -208,7 +208,7 @@ def perform_left(arg1, shift):
             shifted = shifted[1:8]
             shifted.extend([0])
             print("", shifted, end="\r")
-            time.sleep(1.5)
+            time.sleep(0.1)
             s -= 1
         print("")
         result.extend(shifted)
@@ -240,7 +240,7 @@ def perform_right(arg1, shift):
             shifted = shifted[0:7]
             shifted.insert(0, 0)
             print("", shifted)
-            time.sleep(1.5)
+            time.sleep(0.1)
             s -= 1
         print("")
         result.extend(shifted)
