@@ -1,0 +1,56 @@
+alias reset_brew='cd /usr/local; sudo git fetch; sudo git reset --hard origin/master'
+
+if [ -x /usr/bin/dircolors ]; then
+    test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
+    alias ls='ls --color=auto'
+    #alias dir='dir --color=auto'
+    #alias vdir='vdir --color=auto'
+
+    #alias grep='grep --color=auto'
+    #alias fgrep='fgrep --color=auto'
+    #alias egrep='egrep --color=auto'
+fi
+
+# some more ls aliases
+#alias ll='ls -l'
+#alias la='ls -A'
+#alias l='ls -CF'
+
+# alias jump='~/scripts/login.exp'
+# alias cssh='~/scripts/csshX'
+# alias rm='shred -uz'
+
+#
+# unalias everything
+#
+# unalias -a
+#
+# set up some aliases
+#
+# alias h='history'
+# alias l='ls -l'
+# alias dir='ls -FlAg'
+# alias yusr='ypcat passwd | grep -i'
+# alias yhost='ypcat hosts | grep -i'
+# alias winsize='eval `which resize`'
+# alias rcsedit='~/bin/rcsedit'
+# TRUESSH=`which ssh`
+# TRUESCP=`which scp`
+# alias ssh="$TRUESSH -o ForwardX11=yes -o CheckHostIP=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+# alias scp="$TRUESCP -o CheckHostIP=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null"
+# 
+# alias build_path='export PATH=/usr/bin:/bin:/usr/sbin:/usr/local/bin:/usr/ccs/bin:/usr/openwin/bin; unset C_INCLUDE_PATH ; export LD_LIBRARY_PATH=/usr/local/lib:/usr/lib:/lib:/usr/openwin/lib'
+# 
+#
+# Printing aliases
+#
+# if [ ! -z $LOCAL_PRINTER ]; then
+#   alias prtd='enscript -r2Gj -d $LOCAL_PRINTER --mark-wrapped-lines=arrow'
+#   alias prts='enscript -Gj -d $LOCAL_PRINTER --mark-wrapped-lines=arrow'
+#   alias prtdperl='enscript -r2Gj -Eperl -d $LOCAL_PRINTER --mark-wrapped-lines=arrow'
+#   alias prtsperl='enscript -Gj -Eperl -d $LOCAL_PRINTER --mark-wrapped-lines=arrow'
+#   alias print=prts
+# fi
+#
+# alias cpan='perl -I~/perl/lib/5.8.3 -I~/perl/lib/site_perl/5.8.3 -MCPAN -e shell'
+

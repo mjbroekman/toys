@@ -1,0 +1,127 @@
+setopt AUTO_CD
+setopt CHASE_LINKS
+setopt BASH_AUTO_LIST
+setopt APPEND_HISTORY
+setopt HIST_NO_STORE
+setopt HIST_REDUCE_BLANKS
+setopt HIST_IGNORE_ALL_DUPS
+setopt PROMPT_SUBST
+
+unset TRIMMED_PWD
+export TRIMMED_PWD=
+
+export LPASS_DISABLE_PINENTRY=1
+export QUOTING_STYLE=literal
+export GIT_PS1_SHOWUPSTREAM="auto"
+export GIT_PS1_SHOWUNTRACKEDFILES=1
+export GIT_PS1_SHOWDIRTYSTATE=1
+
+if [ -d ~/.shrc.d/ ]; then
+    for f in `ls ~/.shrc.d/`; do
+        if [ -f ~/.shrc.d/$f ]; then
+            source ~/.shrc.d/$f
+        fi
+    done
+fi
+
+if [ "$ITERM_PROFILE" = "Decoding" -o "$TERM_PROGRAM" = "Apple_Terminal" ]; then
+    export PS1="$ "
+    precmd() { echo -n ""; }
+else
+    precmd() { update_terminal_cwd ; trim_directory_length ; __git_ps1 "%F{green}%n@%m%f:%F{blue}\${TRIMMED_PWD}%F{yellow}" "%f$ " }
+fi
+
+bindkey -e
+
+export PATH=/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:~/bin:~/sbin:/usr/local/sbin:/usr/local/clamav/bin:/usr/local/clamav/sbin:$PATH
+export PKG_CONFIG_PATH="/opt/X11/lib/pkgconfig"
+export XML_CATALOG_FILES="/usr/local/etc/xml/catalog"
+export PYTHONPATH="/opt/homebrew/lib/python3.9/site-packages"
+export EDITOR=vi
+export GOPATH=~/scripts/go
+if [ ! -d $GOPATH ]; then
+    mkdir -p $GOPATH/bin
+fi
+export PATH="$PATH:$GOPATH/bin"
+export HOMEBREW_GITHUB_API_TOKEN="your homebrew api token"
+
+TODAY=`date +%Y%m%d`
+if [ -f ~/.brew_env_$TODAY ]; then
+    echo "Loading today's brew..."
+    . ~/.brew_env_$TODAY
+else
+    for f in `ls ~/.brew_env* | 2>/dev/null`; do
+        rm $f
+    done
+    echo -n "brewing good stuff for $TODAY: "
+    for BRW in curl homebrew icu4c libffi libressl m4 openldap readline sqlite ssh-copy-id tcl-tk zlib openjdk@11 ruby libiconv libxml2 openssl@1.1 jadx openssl@3 postgresql; do
+        echo -n "$BRW "
+        export BREWPATH=$(brew --prefix $BRW 2>/dev/null)
+        brew_path $BREWPATH
+        unset BREWPATH
+    done
+    echo ""
+    echo "export PATH=\"$PATH\"" >>~/.brew_env_$TODAY
+    echo "export LD_FLAGS=\"$LD_FLAGS\"" >>~/.brew_env_$TODAY
+    echo "export PKG_CONFIG_PATH=\"$PKG_CONFIG_PATH\"" >>~/.brew_env_$TODAY
+    echo "export CPP_FLAGS=\"$CPP_FLAGS\"" >>~/.brew_env_$TODAY
+    cp ~/.brew_env_$TODAY ~/.brew_env.last
+fi
+
+PERL_MB_OPT="--install_base \"~/perl5\""; export PERL_MB_OPT;
+PERL_MM_OPT="INSTALL_BASE=~/perl5"; export PERL_MM_OPT;
+
+if [ -f ~/.fortune.sh ]; then
+  ~/.fortune.sh
+fi
+
+export PAGER="less -X"
+
+if [ ! -f ~/.real_ip_checked ]; then
+  check_real_ip
+  date +%s > ~/.real_ip_checked
+else
+  last_chk=`cat ~/.real_ip_checked`
+  now_chk=`date +%s`
+  if [ $(( $now_chk - $last_chk )) -gt 86400 ]; then
+    rm ~/.real_ip_checked
+    check_real_ip
+    date +%s > ~/.real_ip_checked
+  fi
+fi
+
+if [ -f ~/.real_ip ]; then
+  . ~/.real_ip
+fi
+
+IPATH=$PATH
+PATH=$(n= ;IFS=':'; for e in $IPATH; do [[ :$n == *:$e:* ]] || n+=$e:; done; echo "${n%:}")
+unset IFS
+export PATH
+
+export RUBYVER=`ruby --version | awk '{ print $2 }' | awk -F\. '{ print $1"."$2 }'`
+export PATH="$HOME/.gem/ruby/$RUBYVER.0/bin:$PATH"
+
+export TERM_ROWS=`tput lines`
+export TERM_COLS=`tput cols`
+
+if [ -x /usr/bin/osascript ]; then
+    LDC=0
+    if [ -f ~/.last_desktop_change ]; then
+        LDC=`cat ~/.last_desktop_change`
+    fi
+    NOW=`date +%Y%m%d%H`
+    if [ $(( $LDC + 2 )) -lt $NOW ]; then
+        osascript -e 'tell application "System Events" to tell current desktop to set change interval to -1'
+        osascript -e 'tell application "System Events" to tell current desktop to set change interval to 1209600'
+        echo $NOW >~/.last_desktop_change
+    fi
+fi
+
+export SYS_NAME="your desired hostname"
+for n in ComputerName HostName LocalHostName; do
+    if [ "`scutil --get $n`" != "$SYS_NAME" ]; then
+        scutil --set $n $SYS_NAME
+    fi
+done
+
