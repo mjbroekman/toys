@@ -1,7 +1,7 @@
 function _syncScripts () {
-  #local HOSTS_QA="eqqfid01"
-  #local HOSTS_ITF="eqiapp21 eqiapp22 eqiadt01 eqiadt02 eqifid01 eqidbs01 eqidbs02"
-  #local HOSTLIST="${HOSTS_QA} ${HOSTS_ITF}"
+  local HOSTS_QA="qahost01 qahost02"
+  local HOSTS_ITF="itfhost01 itfhost02 itfhost03"
+  local HOSTLIST="${HOSTS_QA} ${HOSTS_ITF}"
   for H in $HOSTLIST; do
     distEnvironment $H
   done
