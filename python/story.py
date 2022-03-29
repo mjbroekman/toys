@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """Retrieve and print words from a UTF-8 document
 
 Usage:
@@ -55,4 +56,4 @@ def main(url):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(sys.argv[1]) # The 0th arg is the module filename
