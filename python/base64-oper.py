@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """
 Perform and illustrate base64 encoding / decoding
+
+Usage:
+    base64-oper.py [-e|-d] -a string_to_work_on
+
 """
 from __future__ import print_function
 
@@ -9,10 +13,11 @@ import argparse
 import time
 
 
-
 def main(argv):
-    """
-    Argument parsing
+    """Parse command-line arguments
+
+    Args:
+        argv: sys.argv
     """
 
     parser = argparse.ArgumentParser(description="Perform base64 operations on arguments")
@@ -43,10 +48,27 @@ def main(argv):
         b64.perform_decode()
 
 class myBase64():
+    """Base64 encoding / decoding class
+
+    Usage:
+        Instantiation:
+            var = myBase64(arg)
+        Encoding:
+            var.perform_encode() 
+        Decoding:
+            var.perform_decode()
     """
-    my base64 encoding / decoding class
-    """
+
     def __init__(self,arg):
+        """Initialize the class object
+        
+        Args:
+            self: object self-reference
+            arg: command-line argument provided
+        
+        Returns:
+            class object
+        """
         self.input = arg
         self.output = ""
         self.result = []
@@ -61,60 +83,67 @@ class myBase64():
 
 
     def perform_encode(self):
-        """
-        Perform base64 encode
+        """Perform Base64 encoding
+
+        Args:
+            None (self-reference)
         """
         self.print_oper("encode")
-
         self.getbits(8)
-
         while len(self.bits) % 6 != 0:
             self.bits.extend([0])
 
         self.frombits(6)
-
         self.display_results()
 
 
     def perform_decode(self):
-        """
-        Perform base64 decode
+        """Perform Base64 decoding
+
+        Args:
+            None (self-reference)
         """
         self.print_oper("decode")
-
         self.getbits(6)
-
         self.frombits(8)
-
         self.display_results()
 
 
-    def print_oper(self,op):
+    def print_oper(self,operation):
+        """Print operator being used
+
+        Args:
+            self: self-reference
+            operation: operation to display
         """
-        Print wrapper
-        """
-        print("Performing", op, "operation on\n\n",self.input + ":")
+        print("Performing", operation, "operation on\n\n",self.input + ":")
 
 
     def display_results(self):
-        """
-        Results printer
+        """Print Results of operation
+
+        Args:
+            None (self-reference)
         """
         print("\nResult is:\n",self.output)
 
 
-    def getbits(self,bitlen):
+    def getbits(self,bit_length):
+        """Get the bitstring of the given text string and print out each step
+
+        Args:
+            self: self-reference
+            bit_length: number of bits to retrieve
         """
-        Get the bitstring of the given text string
-        """
-        if bitlen == 8:
+        if bit_length == 8:
             for c in self.input:
                 bits = bin(ord(c))[2:]
                 bits = "00000000"[len(bits) :] + bits
                 self.bits.extend([int(b) for b in bits])
                 print(self.bits,end="\r")
                 time.sleep(0.5)
-        if bitlen == 6:
+
+        if bit_length == 6:
             for c in self.input:
                 if c != "=":
                     bits = bin(self.chars.index(c))[2:]
@@ -124,25 +153,32 @@ class myBase64():
                     self.bits.extend([int(b) for b in bits])
                 print(self.bits,end="\r")
                 time.sleep(0.5)
+
         print("\n")
 
 
-    def frombits(self,bitlen):
+    def frombits(self,bit_length):
+        """Convert list of bits to text and print out each step
+
+        Args:
+            self: self-reference
+            bit_length: length of bit chunks to process
         """
-        Convert list of bits to text
-        """
-        for b in range(int(len(self.bits) / bitlen)):
-            byte = self.bits[b * bitlen : (b + 1) * bitlen]
+        for b in range(int(len(self.bits) / bit_length)):
+            byte = self.bits[b * bit_length : (b + 1) * bit_length]
             bitval = int("".join([str(bit) for bit in byte]), 2)
-            if bitlen == 8:
+
+            if bit_length == 8:
                 print("%24s => %3d => %s" % (byte, bitval, chr(bitval)))
                 self.charlist.append(chr(int("".join([str(bit) for bit in byte]), 2)))
-            if bitlen == 6:
+
+            if bit_length == 6:
                 print("%18s => %3d => %s" % (byte, bitval, self.chars[bitval]))
                 self.charlist.append(self.chars[int("".join([str(bit) for bit in byte]), 2)])
+
             time.sleep(0.2)
 
-        while bitlen == 6 and len(self.charlist) % 4 != 0:
+        while bit_length == 6 and len(self.charlist) % 4 != 0:
             self.charlist.append("=")
 
         self.output = "".join(self.charlist)
