@@ -1,3 +1,8 @@
+"""Retrieve and print words from a UTF-8 document
+
+Usage:
+    python3 story.py <URL>
+"""
 import sys
 from urllib.request import urlopen
 
