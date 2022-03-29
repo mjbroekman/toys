@@ -3,6 +3,14 @@ from urllib.request import urlopen
 
 
 def fetch_words(url):
+    """Fetch a list of words from a URL
+
+    Args:
+        url: The URL to retrieve UTF-8 data from
+    
+    Returns:
+        A list of strings that compose the URL data
+    """
     story = urlopen(url)
     story_words = []
 
@@ -16,11 +24,27 @@ def fetch_words(url):
 
 
 def print_items(items):
+    """Print a series of objects from an iterable
+    
+    Args:
+        items: Iterable containing objects to print
+    
+    Returns:
+        None
+    """
     for item in items:
         print(item)
 
 
 def main(url):
+    """Main function print URL items from the command-line
+    
+    Args:
+        url: The URL to pass to fetch_words()
+    
+    Returns:
+        None
+    """
     words = fetch_words(url)
     print_items(words)
 
