@@ -4,37 +4,51 @@ Retrieve a random book from Project Gutenberg and pull a random sentence from it
 
 This can have interesting results if the book isn't in English.
 
+Usage: bookgen.py
+
 Author: Maarten Broekman
 '''
-# import os
-# import sys
+
 from urllib.request import urlopen
 from urllib.error import HTTPError
 import random
 import time
+import re
 from bs4 import BeautifulSoup
 
 def get_random_book():
-    """
-    Retrieve something from Gutenberg
+    """Retrieve something from Gutenberg eBooks
+
+    Args:
+        None
+
+    Returns:
+        Complete Gutenberg URL
     """
     baseurl = "http://www.gutenberg.org/ebooks"
+    fileurl = "http://www.gutenberg.org/files"
     response = urlopen(baseurl + '/search/?sort_order=random')
-    url = baseurl
+
     html = response.read()
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, 'html.parser')
+
     for link in soup.findAll('a'):
-        if link.get('href').find('ebooks') > -1:
-            if link.get('href').find('search') < 0:
-                if len(link.get('href')) > 8:
-                    book = link.get('href').split('/')[2]
-                    break
-    url = url + '/' + book + '.txt.utf-8'
+        m = re.search('(?<=ebooks\/)\d+', link.get('href'))
+        if m is not None:
+            book = m.group(0)
+            break
+
+    url = fileurl + '/' + book + '/' + book + '-0.txt'
     return url
 
-def main():
-    """
-    Main loop. Loop until satisfied with sentence.
+def read_book():
+    """Retrieve a book and print out a random sentence
+
+    Args:
+        None
+
+    Returns:
+        None
     """
     while 1 == 1:
         book = get_random_book()
@@ -45,7 +59,7 @@ def main():
             print("Unable to retrieve book from " + book)
         else:
             html = response.read()
-            text = html.split().join(" ")
+            text = " ".join(html.split())
             text = text.replace('"', "")
 
             sentences = text.split(". ")
@@ -57,4 +71,4 @@ def main():
         time.sleep(5)
 
 if __name__ == "__main__":
-    main()
+    read_book()
