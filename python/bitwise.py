@@ -1,6 +1,17 @@
 #!/usr/bin/env python3
 """
 Perform and illustrate bitwise math
+
+Usage:
+    bitwise.py [-o operation] [-s shift_count] [-1 first_arg] [-2 second_arg]
+
+Supported Operations:
+    - and    : combines two arguments using the 'and' bitwise operation
+    - or     : combines two arguments using the 'or' bitwise operation
+    - xor    : combined two arguments using the 'xor' bitwise operation
+    - not    : uses the 'not' operation on one argument
+    - lshift : shifts one argument to the left by shift_count bits
+    - rshift : shifts one argument to the right by shift_count bits
 """
 
 import sys
@@ -9,8 +20,10 @@ import time
 
 
 def main(argv):
-    """
-    Argument parsing
+    """Parse command-line arguments
+
+    Args:
+        argv: sys.argv
     """
 
     parser = argparse.ArgumentParser(description="Perform bitwise operations on arguments")
@@ -60,8 +73,11 @@ def main(argv):
 
 
 def perform_and(arg1, arg2):
-    """
-    Perform and illustrate the 'and' operation
+    """Perform and illustrate the 'and' operation
+
+    Args:
+        arg1: first argument of the operation
+        arg2: second argument of the operation
     """
     first = getbits(arg1)
     second = getbits(arg2)
@@ -95,9 +111,12 @@ def perform_and(arg1, arg2):
 
 
 def perform_or(arg1, arg2):
-    """
-    Perform and illustrate the 'or' operation
-    """
+    """Perform and illustrate the 'or' operation
+ 
+    Args:
+        arg1: first argument of the operation
+        arg2: second argument of the operation
+   """
     first = getbits(arg1)
     second = getbits(arg2)
     result = []
@@ -130,8 +149,11 @@ def perform_or(arg1, arg2):
 
 
 def perform_xor(arg1, arg2):
-    """
-    Perform and illustrate the 'xor' operation
+    """Perform and illustrate the 'xor' operation
+
+    Args:
+        arg1: first argument of the operation
+        arg2: second argument of the operation
     """
     first = getbits(arg1)
     second = getbits(arg2)
@@ -165,8 +187,10 @@ def perform_xor(arg1, arg2):
 
 
 def perform_not(arg1):
-    """
-    Perform and illustrate the 'not' operation
+    """Perform and illustrate the 'not' operation
+    
+    Args:
+        arg1: first argument of the operation
     """
     first = getbits(arg1)
     result = []
@@ -190,8 +214,11 @@ def perform_not(arg1):
 
 
 def perform_left(arg1, shift):
-    """
-    Perform and illustrate the 'left shift' operation
+    """Perform and illustrate the 'left shift' operation
+    
+    Args:
+        arg1: first argument of the operation
+        shift: number of bits that arg1 will be shifted left
     """
     first = getbits(arg1)
     print("Performing bitwise (logical) left shift on:\n")
@@ -222,8 +249,11 @@ def perform_left(arg1, shift):
 
 
 def perform_right(arg1, shift):
-    """
-    Perform and illustrate the 'right shift' operation
+    """Perform and illustrate the 'right shift' operation
+    
+    Args:
+        arg1: first argument of the operation
+        shift: number of bits that arg1 will be shifted right
     """
     first = getbits(arg1)
     print("Performing bitwise (logical) right shift on:\n")
@@ -254,8 +284,10 @@ def perform_right(arg1, shift):
 
 
 def getbits(arg):
-    """
-    Get the bitstring of the given text string
+    """Get the bitstring of the given text string
+    
+    Args:
+        arg: argument to convert to a bitstring
     """
     result = []
     for c in arg:
@@ -266,8 +298,10 @@ def getbits(arg):
 
 
 def frombits(bits):
-    """
-    Convert list of bits to text
+    """Convert list of bits to text
+
+    Args:
+        bits: bitstring to convert to text
     """
     chars = []
     for b in range(int(len(bits) / 8)):
