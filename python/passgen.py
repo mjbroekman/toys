@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 '''
 Password generator that attempts to provide some amount of complexity
  based on the number of character classes used.  Considers upper and
@@ -6,7 +6,7 @@ Password generator that attempts to provide some amount of complexity
 
 Author: Maarten Broekman
 '''
-from __future__ import print_function
+# from __future__ import print_function
 # import os
 import sys
 import getopt
@@ -19,91 +19,123 @@ UCASE = string.ascii_uppercase
 NUMS = string.digits
 PUNCS = string.punctuation
 
-def dbg_print(msg, dbg, limit=0):
-    """
-    Only print if our debug variable exceeds the limit we set
-    """
-    if dbg > limit:
-        print(msg)
+debug = 0
 
-def gen_pass(alphabet, classcnt=4, length=32, dbg=0):
+def dbg_print(message, limit=0):
+    """Only print if our debug variable exceeds the limit we set
+
+    Args:
+        message: message to print
+        limit: optional debug limit for varying levels of verbosity
+    
+    Returns:
+        None
     """
-    Generate a new password
+    if debug > limit:
+        print(message)
+
+
+def gen_pass(alphabet, class_count=4, length=64):
+    """Generate a new password
+
+    Args:
+        alphabet: character set to use for creating a password
+        class_count: number of required character classes (defaults to 4 classes)
+        length: password length (defaults to 64 characters)
+    
+    Returns:
+        String (password)
     """
-    mypw = ""
-    while chk_pass(alphabet, classcnt, mypw, dbg) < 0:
-        mypw = ""
-        pwlen = length
-        while pwlen > 0:
+    new_password = ""
+    while chk_pass(alphabet, class_count, new_password) is False:
+        new_password = ""
+        password_length = length
+        while password_length > 0:
             next_index = random.randrange(len(alphabet))
-            mypw = mypw + alphabet[next_index]
-            pwlen -= 1
-    print(mypw)
+            new_password = new_password + alphabet[next_index]
+            password_length -= 1
 
-def chk_pass(alphabet, classcnt, password, dbg=0):
+    return new_password
+
+
+def chk_pass(alphabet, class_count, password):
+    """Check to see if the new password meets the complexity requirements
+
+    Args:
+        alphabet: password character alphabet
+        class_count: number of required character classes
+        password: password to check
+    
+    Returns:
+        Bool (True / False)
     """
-    Check to see if the new password meets the complexity requirements
-    """
-    chk_comp = 0
-    foundclass = ""
+    complexity_chk = 0
+    found_classes = ""
 
     for char in password:
         if char in LCASE:
-            if classcnt > 0 and LCASE not in foundclass:
-                dbg_print("Found lowercase ascii letter", dbg, 0)
+            if class_count > 0 and LCASE not in found_classes:
+                dbg_print("Found lowercase ascii letter", 0)
                 alphabet = alphabet.replace(LCASE, "")
-                foundclass = foundclass + LCASE
-                chk_comp += 1
+                found_classes = found_classes + LCASE
+                complexity_chk += 1
+
         if char in UCASE:
-            if classcnt > 1 and UCASE not in foundclass:
-                dbg_print("Found uppercase ascii letter", dbg, 0)
+            if class_count > 1 and UCASE not in found_classes:
+                dbg_print("Found uppercase ascii letter", 0)
                 alphabet = alphabet.replace(UCASE, "")
-                foundclass = foundclass + UCASE
-                chk_comp += 1
+                found_classes = found_classes + UCASE
+                complexity_chk += 1
+
         if char in NUMS:
-            if classcnt > 2 and NUMS not in foundclass:
-                dbg_print("Found number", dbg, 0)
+            if class_count > 2 and NUMS not in found_classes:
+                dbg_print("Found number", 0)
                 alphabet = alphabet.replace(NUMS, "")
-                foundclass = foundclass + NUMS
-                chk_comp += 1
+                found_classes = found_classes + NUMS
+                complexity_chk += 1
+
         if char in PUNCS:
-            if classcnt > 3 and PUNCS not in foundclass:
-                dbg_print("Found punctuation", dbg, 0)
+            if class_count > 3 and PUNCS not in found_classes:
+                dbg_print("Found punctuation", 0)
                 alphabet = alphabet.replace(PUNCS, "")
-                foundclass = foundclass + PUNCS
-                chk_comp += 1
-        if chk_comp >= classcnt:
-            dbg_print("Sufficient complexity found.", dbg, 0)
+                found_classes = found_classes + PUNCS
+                complexity_chk += 1
+
+        if complexity_chk >= class_count:
+            dbg_print("Sufficient complexity found.", 0)
             break
-    if chk_comp < classcnt:
-        if len(password) > 0 and dbg > 0:
+
+    if complexity_chk < class_count:
+        if len(password) > 0 and debug > 0:
             print('Password lacking complexity. ', end='')
-            print('Required complexity: ' + str(classcnt), end=' ')
-            print(':: Found complexity: ' + str(chk_comp))
+            print('Required complexity: ' + str(class_count), end=' ')
+            print(':: Found complexity: ' + str(complexity_chk))
             print('Bad Password: ' + password)
-        return -1
-    return 0
+
+        return False
+
+    return True
 
 
+def get_alphabet(punct_list, class_count=4):
+    """Get the appropriate list of characters to use for password generation
 
-def get_alphabet(my_puncs, classcnt=4):
+    Args:
+        punct_list: List of acceptable punc
     """
-    Get the appropriate list of characters to use for password generation
-    """
-    if classcnt == 1:
+    if class_count == 1:
         alphabet = LCASE
-    if classcnt == 2:
+    if class_count == 2:
         alphabet = LCASE + UCASE
-    if classcnt == 3:
+    if class_count == 3:
         alphabet = LCASE + UCASE + NUMS
-    if classcnt == 4:
-        if my_puncs is not None:
-            alphabet = LCASE + UCASE + NUMS + my_puncs
+    if class_count == 4:
+        if punct_list is not None:
+            alphabet = LCASE + UCASE + NUMS + punct_list
         else:
             alphabet = LCASE + UCASE + NUMS + PUNCS
 
     return alphabet
-
 
 
 def chk_length(length, comp):
@@ -117,7 +149,6 @@ def chk_length(length, comp):
         sys.exit()
 
 
-
 def strip_excludes(chars, remove):
     """
     Removes a list of characters from another list of characters
@@ -128,11 +159,12 @@ def strip_excludes(chars, remove):
     return chars
 
 
-
 def main(args):
     """
     Main processing
     """
+    global debug
+
     try:
         opts, args = getopt.getopt(args, "hd12345i:x:l:")
     except getopt.GetoptError:
@@ -142,8 +174,7 @@ def main(args):
 
     exclude = ""
     include = ""
-    my_puncs = None
-    debug = 0
+    punct_list = None
     complexity = 4
     for opt, arg in opts:
         if opt == '-h':
@@ -168,7 +199,7 @@ def main(args):
         if opt == '-3':
             complexity = 3
         if opt == '-4':
-            my_puncs = str('.,?/"\':;-_')
+            punct_list = str('.,?/"\':;-_')
             complexity = 4
         if opt == '-5':
             complexity = 4
@@ -178,13 +209,12 @@ def main(args):
             debug += 1
 
     chk_length(pw_length, complexity)
-    charlist = get_alphabet(my_puncs, complexity)
-    dbg_print(charlist, debug, 1)
+    charlist = get_alphabet(punct_list, complexity)
+    dbg_print(charlist, 1)
     charlist = strip_excludes(charlist, exclude)
     charlist = charlist + include
-    dbg_print(charlist, debug, 1)
+    dbg_print(charlist, 1)
     gen_pass(charlist, complexity, pw_length)
-
 
 
 if __name__ == '__main__':
