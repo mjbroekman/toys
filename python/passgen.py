@@ -121,7 +121,7 @@ def get_alphabet(punct_list, class_count=4):
     """Get the appropriate list of characters to use for password generation
 
     Args:
-        punct_list: List of acceptable punc
+        punct_list: List of acceptable punctuation
     """
     if class_count == 1:
         alphabet = LCASE
@@ -138,30 +138,48 @@ def get_alphabet(punct_list, class_count=4):
     return alphabet
 
 
-def chk_length(length, comp):
+def chk_length(length, complexity):
+    """Check for proper length vs complexity settings
+
+    Args:
+        length: The desired length of the password
+        complexity: The number of required character classes
+
+    Returns:
+        Bool
     """
-    Check for proper length vs complexity settings
-    """
-    if length < comp:
+    if length < complexity:
         print('Error: password length ' + str(length), end=' ')
-        print('is not long enough to allow for ' + str(comp), end=' ')
+        print('is not long enough to allow for ' + str(complexity), end=' ')
         print('character classes.')
-        sys.exit()
+        return False
+    
+    return True
 
+def strip_excludes(character_list, removal_list):
+    """Removes a list of characters from another list of characters
 
-def strip_excludes(chars, remove):
+    Args:
+        character_list: list of characters
+        removal_list: list of characters to remove
+
+    Returns:
+        character_list
     """
-    Removes a list of characters from another list of characters
-    """
-    for exclude in remove:
-        chars = chars.replace(exclude, "")
+    for exclude in removal_list:
+        character_list = character_list.replace(exclude, "")
 
-    return chars
+    return character_list
 
 
 def main(args):
-    """
-    Main processing
+    """Main processing function. Parses arguments and calls other functions to create the password
+
+    Args:
+        args: sysv.args[1:]
+    
+    Returns:
+        None
     """
     global debug
 
@@ -176,11 +194,13 @@ def main(args):
     include = ""
     punct_list = None
     complexity = 4
+    pw_length = 64
+
     for opt, arg in opts:
         if opt == '-h':
             print('passgen.py [-x exclude_char ...] [-h] [-d] [-1|2|3|4|5] [-l length]\n')
             print('-x - Exclude a character.  Can be used multiple times.')
-            print('-l - Password length. Defaults to 32.')
+            print('-l - Password length. Defaults to 64.')
             print('-d - Debug mode.  printmore info.')
             print('-1 - Only lowercase letters.')
             print('-2 - Uppercase and lowercase letters.')
@@ -208,13 +228,13 @@ def main(args):
         if opt == '-d':
             debug += 1
 
-    chk_length(pw_length, complexity)
-    charlist = get_alphabet(punct_list, complexity)
-    dbg_print(charlist, 1)
-    charlist = strip_excludes(charlist, exclude)
-    charlist = charlist + include
-    dbg_print(charlist, 1)
-    gen_pass(charlist, complexity, pw_length)
+    if chk_length(pw_length, complexity):
+        charlist = get_alphabet(punct_list, complexity)
+        dbg_print(charlist, 1)
+        charlist = strip_excludes(charlist, exclude)
+        charlist = charlist + include
+        dbg_print(charlist, 1)
+        print(gen_pass(charlist, complexity, pw_length))
 
 
 if __name__ == '__main__':
