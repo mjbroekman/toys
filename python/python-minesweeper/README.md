@@ -1,3 +1,8 @@
++++++++++
+IMPORTANT
++++++++++
+This has moved to a new repo: [https://github.com/mjbroekman/python-minesweeper](https://github.com/mjbroekman/python-minesweeper)
+
 PySweeper!!!
 ============
 
