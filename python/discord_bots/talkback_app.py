@@ -19,10 +19,13 @@ def send_command(command):
         '$addquote', '$delquote', '$listquotes'
     ]
 
+    if command not in commands:
+        return "What was that? I didn't understand that command:\n\t" + command + "\n\nTry $help"
+
     if command in ['$help', '$commands']:
-        return 'These are the commands I understand:\n' + ', '.join(commands) +
-               '\n\nI also respond to questions or if you mention me.\n\n' + 
-               'If you say "pass the ", I will try to give it to you or ' +
+        return 'These are the commands I understand:\n' + ', '.join(commands) + \
+               '\n\nI also respond to questions or if you mention me.\n\n' + \
+               'If you say "pass the ", I will try to give it to you or ' + \
                'someone else. If possible, I will even turn it into emoji.'
 
     if command in ['$hello', '$hi', '$howdy', '$sup']:
@@ -38,7 +41,10 @@ def send_command(command):
         return "My author's ReplIt page is: https://replit.com/@mjbroekman/"
 
     if command in ['$socials']:
-        return 'You can find my author at:\n* https://www.youtube.com/c/MaartenBroekman\n* https://github.com/mjbroekman\n* https://replit.com/@mjbroekman/'
+        return 'You can find my author at:\n' + \
+               '* https://www.youtube.com/c/MaartenBroekman\n' + \
+               '* https://github.com/mjbroekman\n' + \
+               '* https://replit.com/@mjbroekman/'
 
     if command in ['$quote']:
         return get_quote()
@@ -51,44 +57,49 @@ def send_command(command):
 
     if command in ['$quotes', '$listquotes']:
       if 'quotes' in db.keys():
-          if len(db['quotes']) > 0:
-              return "Current stored quotes:\n* " + "\n* ".join(db['quotes'])
-      return "There are no quotes stored in the bot yet. Using the $quote command will get quotes from https://quotable.io. Using $addquote will add quotes to the bot."
+        if len(db['quotes']) > 0:
+          return "Current stored quotes:\n* " + "\n* ".join(db['quotes'])
+      return "There are no quotes stored in the bot yet. " + \
+             "Using the $quote command will get quotes from " + \
+             "https://quotable.io.\n" + \
+             "Using $addquote will add quotes to the bot."
 
     if command.startswith('$random'):
-        if command == '$random':
-            return "Here's a random number: " + str(
-                random.randint(0, int(time.time())))
+      return get_random(command)
 
-        num1 = re.match(r'.random (-?\d+)$', command)
-        nums = re.match(r'.random (-?\d+) (-?\d+)', command)
-        if num1 is not None:
-            if int(num1.group(1)) > 0:
-                return "Here's a random number between 0 and " + num1.group(
-                    1) + ":\n\t" + str(random.randint(0, int(num1.group(1))))
-            if int(num1.group(1)) < 0:
-                return "Here's a random number between " + num1.group(
-                    1) + "and 0:\n\t" + str(
-                        random.randint(int(num1.group(1)), 0))
 
-            return "That's not very random, don't you think?"
+def get_random(command):
+    if command == '$random':
+      return "Here's a random number: " + str(
+              random.randint(0, int(time.time())))
 
-        if nums is not None:
-            if int(nums.group(1)) < int(nums.group(2)):
-                return "Here's a random number between " + nums.group(
-                    1) + " and " + nums.group(2) + ":\n\t" + str(
-                        random.randint(int(nums.group(1)), int(nums.group(2))))
+    num1 = re.match(r'.random (-?\d+)$', command)
+    nums = re.match(r'.random (-?\d+) (-?\d+)', command)
+    if num1 is not None:
+        if int(num1.group(1)) > 0:
+            return "Here's a random number between 0 and " + num1.group(
+                1) + ":\n\t" + str(random.randint(0, int(num1.group(1))))
+        if int(num1.group(1)) < 0:
+            return "Here's a random number between " + num1.group(
+                1) + "and 0:\n\t" + str(
+                    random.randint(int(num1.group(1)), 0))
 
-            if int(nums.group(1)) > int(nums.group(2)):
-                return "Here's a random number between " + nums.group(
-                    2) + " and " + nums.group(1) + ":\n\t" + str(
-                        random.randint(int(nums.group(2)), int(nums.group(1))))
+        return "That's not very random, don't you think?"
 
-            return "That's not very random, don't you think?"
+    if nums is not None:
+        if int(nums.group(1)) < int(nums.group(2)):
+            return "Here's a random number between " + nums.group(
+                1) + " and " + nums.group(2) + ":\n\t" + str(
+                    random.randint(int(nums.group(1)), int(nums.group(2))))
 
-        return "I didn't find numbers in there to generate random numbers with."
+        if int(nums.group(1)) > int(nums.group(2)):
+            return "Here's a random number between " + nums.group(
+                2) + " and " + nums.group(1) + ":\n\t" + str(
+                    random.randint(int(nums.group(2)), int(nums.group(1))))
 
-    return "What was that? I didn't understand that command:\n\t" + command + "\n\nTry $help"
+        return "That's not very random, don't you think?"
+
+    return "I didn't find numbers in there to generate random numbers with."
 
 
 def add_quote(command):
@@ -214,3 +225,4 @@ try:
 except Exception as e:
   print('There is a problem running the client. Did you make sure to set the CLIENT_TOKEN environment variable?')
   print(e)
+
