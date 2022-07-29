@@ -1,1 +1,6 @@
-This is an old character generator for D&D that I was writing in PHP.
+PHP Toys
+========
+These are toys and test files in PHP...
+
+cgen.php - D&D Style character generator from ages ago
+
