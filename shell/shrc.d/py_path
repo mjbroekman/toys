@@ -1,0 +1,6 @@
+function py_path {
+    for d in `ls /Users/mbroekman/Library/Python/`; do
+        export PATH="$PATH:/Users/mbroekman/Library/Python/$d/bin"
+        export LD_FLAGS="-L/Users/mbroekman/Library/Python/$d/lib $LD_FLAGS"
+    done
+}

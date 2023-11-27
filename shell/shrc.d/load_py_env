@@ -1,0 +1,23 @@
+function load_py_env() {
+    # Identify whether we are in a python project dir
+    # Load associated virtual envs for python project
+    CUR_PWD=`pwd | sed -e 's/\/.*mbroekman\///g'`
+    if [ `echo $CUR_PWD | awk '/^\// { print "1" } ! /^\// { print "0" }'` -ne 1 ]; then
+        DIR_LIST=${CUR_PWD//\// }
+        found=0
+        for d in `echo $DIR_LIST`; do
+            if [ "$VIRTUAL_ENV" != "${VIRTUAL_ENV//$d}" ]; then
+                found=1
+                break
+            fi
+            if [ -d ~/.pyenvs/$d ]; then
+                found=1
+                source ~/.pyenvs/$d/bin/activate
+                break
+            fi
+        done
+        if [ $found -eq 0 ]; then
+            unset VIRTUAL_ENV
+        fi
+    fi
+}

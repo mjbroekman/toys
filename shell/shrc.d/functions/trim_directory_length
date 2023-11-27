@@ -1,8 +1,9 @@
 function trim_directory_length {
-    PROMPT_DIRTRIM=5
-    if [ `echo \`pwd\` | sed -e 's|/Users/username|\~|' | awk -F/ '{ print NF }'` -ge $PROMPT_DIRTRIM ]; then
-        export TRIMMED_PWD=`echo \`pwd\` | sed -e 's|/Users/username|\~|' | awk -F/ '{ print $1"/.../"$( NF - 1 )"/"$NF }'`
+    local USERDIR="/Users/username"
+    local PROMPT_DIRTRIM=5
+    if [ `echo \`pwd\` | sed -e 's|'${USERDIR}'|\~|' | awk -F/ '{ print NF }'` -ge $PROMPT_DIRTRIM ]; then
+        export TRIMMED_PWD=`echo \`pwd\` | sed -e 's|'${USERDIR}'|\~|' | awk -F/ '{ print $1"/.../"$( NF - 1 )"/"$NF }'`
     else
-        export TRIMMED_PWD=`echo \`pwd\` | sed -e 's|/Users/username|\~|'`
+        export TRIMMED_PWD=`echo \`pwd\` | sed -e 's|'${USERDIR}'|\~|'`
     fi
 }
