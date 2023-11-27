@@ -1,0 +1,221 @@
+#!/usr/bin/expect -f
+
+# Set Default values
+log_user 0
+stty echo
+#exp_internal 1
+set homedir "$env(HOME)"
+set myusername "$env(LOGNAME)"
+set bastion "jumphost"
+set ssh_conf "$homedir/.ssh/config"
+set prompt "(%|#|\\$|%\]) $"
+set content_to_send ""
+set this_pw ""
+set rows "$env(TERM_ROWS)"
+set cols "$env(TERM_COLS)"
+
+# get password out of gpg file using python script
+proc get_pw { pwtype hosttype } {
+    set scriptpath "~/bin/getpass"
+    return [exec $scriptpath "noclip" $pwtype $hosttype]
+}
+
+# Determine which jump server is needed
+proc need_jump { hostname } {
+    switch $hostname {
+        "nojumphost" { return "nojumphost" }
+        default { return "" }
+    }
+}
+
+# Get login name for server
+proc root_login { hosttype myusername } {
+    switch $hosttype {
+      default { return $myusername }
+    }
+}
+
+# check to see if we must su up and elevate grsec privs
+# 0 = no su to root and no grsec
+# 1 = su to root and grsec
+# 2 = su to root no grsec
+# 3 = (LDAP) sudo to root PAM-auth grsec
+proc root_gradm { hostype } {
+    switch $hostype {
+      default { return 1 }
+    }
+}
+
+proc get_su_args { hostname } {
+    switch $hostname {
+      default { return "-m" }
+    }
+}
+
+# Set max's
+set timeout -1
+match_max -d
+
+# get hostname from command line
+set hostname [lindex $argv 0]
+set clicmd [lindex $argv 1]
+
+# extract the host type
+regsub {reg0$} $hostname "" hostname_without_reg0
+regsub {^reg1} $hostname_without_reg0 "" hostname_without_reg1
+regsub {^reg2} $hostname_without_reg1 "" hostname_without_reg2
+regsub {^reg3} $hostname_without_reg2 "" hostname_without_reg3
+regsub {^reg4} $hostname_without_reg3 "" hostname_without_reg4
+regsub {^reg5} $hostname_without_reg4 "" hostname_without_reg5
+regsub {reg6$} $hostname_without_reg5 "" hosttype
+
+# Munge hosttype for specific types
+switch $hosttype {
+    default { set hosttype "host_type" }
+}
+
+# Gather root password, grsec password, and needed jumpserver.
+set rootpw [ get_pw "server_category" "rootpw_name" ]
+set grpw [ get_pw "server_category" "grpw_name" ]
+set jumpserver [ need_jump $hostname ]
+
+# Check if we need to login as ourselves, or root
+set login_name [ root_login $hosttype $myusername ]
+
+# Check if this host requires gradm and su to root
+set need_root_gradm [ root_gradm $hosttype ]
+
+#trap sigwinch and pass it to the child we spawned
+#trap {
+# set rows [stty rows]
+# set cols [stty columns]
+# stty rows $rows columns $cols < $spawn_out(slave,name)
+#} WINCH
+
+if { [string match admin* "$hostname"] } {
+    # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -p 22 -l$login_name $hostname\n"
+    spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -p 22 -l$login_name $hostname
+} elseif { [string match "$jumpserver" "$hostname" ] } {
+    # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname\n"
+    spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname
+} elseif { [string match "$bastion" "$hostname" ] } {
+    # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname\n"
+    spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname
+} else {
+    # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -l$login_name $hostname\n"
+    spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -l$login_name $hostname
+}
+
+set need_ldap 0
+
+# The Login portion and the error traps
+expect {
+    -re "The authenticity of host.*yes/no.*" { send -- "yes\r"; exp_continue }
+    -re "Connection refused" {  send_user -- "Connection refused\n"; exit }
+#    -re "Permission denied" {  send_user -- "Permission denied\n"; exit }
+    -re "Operation timed out" {  send_user -- "SSH connection timed out\n"; exit }
+    -re "No route to host" {  send_user -- "No Route to host\n"; exit }
+    -re "Could not resolve" {  send_user -- "Unknown hostname\n"; exit }
+    -re "Name or service not known" {  send_user -- "Unknown hostname\n"; exit }
+    -re "forward host lookup failed" {  send_user -- "Unknown hostname\n"; exit }
+    -re "administratively prohibited" {  send_user -- "hostname blocked from assigned jumpserver\n"; exit }
+    -re "authentication fail" {  send_user -- "Wrong Password or wrong username un=$myusername\n"; exit }
+    -re "WARNING: REMOTE HOST IDENTIFICATION" { send_user -- "Key Verification Failed, remove key from known_hosts\n"; exit }
+    -re "Authenticated with partial.*$hostname.*password" {
+        set this_pw [ get_pw "category" "pw_name" ]
+        send_user -- "Using LDAP\r\n"
+        send -- "$this_pw\r"
+    }
+    -re "$hostname:" { send -- "\r" }
+    -re "$hostname" { send -- "\r" }
+    -re "assword: " {
+        # send my pw if logging in as me, else send root's
+        if { [string compare $hosttype "somehost"] == 0 } {
+            set this_pw [ get_pw "category" $myusername ]
+        } elseif { [string compare $login_name $myusername] == 0 } {
+            set this_pw [ get_pw "category" $myusername]
+        } else {
+            set this_pw $rootpw
+        }
+        send -- "$this_pw\r"
+    }
+}
+
+# send root and grsec pasword if needed
+if { $need_root_gradm == 1 } {
+    if { [string compare $login_name $myusername] == 0 } {
+        set su_args [ get_su_args $hostname ]
+        expect {
+            -re "assword: " {
+                send -- "$this_pw\r"
+                expect -re {(\$|#) }
+                send -- "su $su_args\r"
+                expect "assword: "
+                send -- "$rootpw\r"
+            }
+            -re {(\$|#) } {
+                send -- "su $su_args\r"
+                expect "assword: "
+                send -- "$rootpw\r"
+            }
+        }
+    }
+    expect -re "$prompt" { send -- "gradm -a admin\r" }
+
+    expect {
+        "assword: " { send "$grpw\r" }
+        -re {.*not.*} { send_user -- "Grsec disabled, or not installed"; send "\r" }
+    }
+} elseif { $need_root_gradm == 3 } {
+    expect {
+        -re "assword: " {
+            send_user -- "Prompted for login password"
+            send -- "$myldappass\r"
+        }
+        -re {(\$|#) } {
+            send -- "sudo -Hi\r"
+            expect {
+                "assword for $myusername: " { send -- "$myldappass\r"; }
+                "$prompt" { send -- "\r"; }
+            }
+        }
+    }
+    expect -re "$prompt" { send -- "gradm -p $myusername\r" }
+
+    expect {
+        "assword: " { send -- "$myldappass\r" }
+        -re {.*not.*} { send_user -- "Grsec disabled, or not installed"; send "\r" }
+    }
+}
+
+# load custom bashrc if su to root used
+if { [string compare $login_name $myusername] == 0 && [string compare $hosttype "bigip"] != 0 && [ regexp {^$} $clicmd match ] !=0 } {
+    expect -re "$prompt|$hostname" { send ". /home/logins/$myusername/.bashrc\r" }
+} else {
+    expect -re "$prompt|$hostname" { send -- "\r" }
+}
+
+set time_out 1
+
+# send root or grsec pw with the listed keystrokes
+expect -re "$prompt|$hostname" {
+    send -- "cat /etc/motd\r"
+    send -- "stty rows $rows columns $cols\r\n"
+    if { $need_root_gradm == 1 } {
+        interact {
+            ~~g {send_user "Sent grsec password"; send -- "$grpw\r"}
+            ~~m {send_user "Sent master grsec password"; send -- "$grpw\r"}
+            ~~r {send_user "Sent root password"; send -- "$rootpw\r"}
+            ~~l {send_user "Sent your LDAP password"; set this_pw [ get_pw "category" "pw_name" ; send -- "$this_pw\r"}
+        }
+    } elseif { $need_root_gradm == 3 } {
+        interact {
+            ~~g {send_user "Sent grsec password"; send -- "$myldappass\r"}
+            ~~m {send_user "Sent master grsec password"; send -- "$grpw\r"}
+            ~~r {send_user "Sent root password"; send -- "$myldappass\r"}
+            ~~l {send_user "Sent your LDAP password"; set this_pw [ get_pw "category" "pw_name" ; send -- "$this_pw\r"}
+        }
+    } else {
+        interact
+    }
+}
