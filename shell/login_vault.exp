@@ -5,8 +5,8 @@ log_user 0
 stty echo
 #exp_internal 1
 set homedir "$env(HOME)"
-set myusername "mbroekman"
-set bastion "utility01"
+set myusername "username"
+set bastion "jumphost"
 set ssh_conf "$homedir/.ssh/config"
 set prompt "(%|#|\\$|%\]) $"
 set content_to_send ""
