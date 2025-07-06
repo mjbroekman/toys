@@ -1,5 +1,5 @@
 function trim_directory_length {
-    local USERDIR="/Users/username"
+    local USERDIR="/Users/$LOGNAME"
     local PROMPT_DIRTRIM=5
     if [ `echo \`pwd\` | sed -e 's|'${USERDIR}'|\~|' | awk -F/ '{ print NF }'` -ge $PROMPT_DIRTRIM ]; then
         export TRIMMED_PWD=`echo \`pwd\` | sed -e 's|'${USERDIR}'|\~|' | awk -F/ '{ print $1"/.../"$( NF - 1 )"/"$NF }'`

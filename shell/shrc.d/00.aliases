@@ -6,3 +6,5 @@ if [ -x /usr/bin/dircolors ]; then
     alias ls='ls --color=auto'
 fi
 
+alias pwrstat='system_profiler SPPowerDataType'
+alias topcpu='top -o cpu'
