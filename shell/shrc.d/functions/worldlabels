@@ -1,0 +1,14 @@
+function worldlabels () {
+    if [ -f "$1" ]; then
+        wogfile=$1
+    elif [ -f "$1.wxx" ]; then
+        wogfile="$1.wxx"
+    else
+        echo "Bad filename: $1"
+        false; return
+    fi
+
+    gunzip -c $wogfile | sed -e 's/[[:cntrl:]]//g' | sed -e 's/\&\#10;/ /g' | grep -i label | sed -e 's/  / /g' | grep -v showFeatureLabels | grep -v Vegetation | grep -v '></label>' | grep -v labelstyle | sed -e 's/<[^>]*>//g' | sed -e "s/\&apos;/'/g" | grep -v Farm-large | grep -v Barn | grep -v ^$ | sort
+
+    return
+}
