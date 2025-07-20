@@ -1,0 +1,270 @@
+#!/usr/bin/expect -f
+
+# Set Default values
+log_user 0
+stty echo
+#exp_internal 1
+
+set homedir "$env(HOME)"
+if { [ info exists env(SL_USER) ] } {
+    set myusername "$env(SL_USER)"
+} elseif { [ info exists env(LOGNAME) ] } {
+    set myusername "$env(LOGNAME)"
+} elseif { [ info exists env(USER) ] } {
+    set myusername "$env(USER)"
+} else {
+    set myusername "bad_default"
+}
+
+set ssh_conf "$homedir/.ssh/config"
+set prompt "(%|#|\\$|%\]) $"
+set content_to_send ""
+set this_pw ""
+
+# get password out of vault file using python script
+proc get_pw { type subtype } {
+    set scriptpath "~/bin/getpass"
+    return [exec $scriptpath "-c" "category" "-s" $subtype "-t" $type]
+}
+
+proc get_pws { } {
+    set scriptpath "~/bin/getpass"
+    return [exec $scriptpath "-p" "category:type:subtype" "-p" "category:type:subtype"]
+}
+
+proc get_stty { } {
+    set term_info [exec "/bin/stty" "-a"]
+    set row_info [lindex $term_info 3]
+    set col_info [lindex $term_info 5]
+    return "stty rows $row_info cols $col_info"
+}
+
+# Determine which jump server is needed
+proc need_jump { hostname } {
+    switch $hostname {
+        "nojumphost" { return "nojumphost" }
+        default { return "" }
+    }
+}
+
+# Get login name for server
+proc root_login { hosttype myusername } {
+    switch $hosttype {
+      default { return $myusername }
+    }
+}
+
+# check to see if we must su up and elevate grsec privs
+# 0 = no su to root and no grsec
+# 1 = su to root and grsec
+# 2 = su to root no grsec
+# 3 = (LDAP) sudo to root PAM-auth grsec
+proc root_seauth { hostype } {
+    switch $hostype {
+      default { return 1 }
+    }
+}
+
+proc get_su_args { hostname } {
+    switch $hostname {
+      default { return "-m" }
+    }
+}
+
+# Set max's
+set timeout -1
+match_max -d
+
+# get hostname from command line
+set hostname [lindex $argv 0]
+set clicmd [lindex $argv 1]
+
+# extract the host type
+regsub {reg0$} $hostname "" hostname_without_reg0
+regsub {^reg1} $hostname_without_reg0 "" hostname_without_reg1
+regsub {^reg2} $hostname_without_reg1 "" hostname_without_reg2
+regsub {^reg3} $hostname_without_reg2 "" hostname_without_reg3
+regsub {^reg4} $hostname_without_reg3 "" hostname_without_reg4
+regsub {^reg5} $hostname_without_reg4 "" hostname_without_reg5
+regsub {reg6$} $hostname_without_reg5 "" hosttype
+
+# Munge hosttype for specific types
+switch $hosttype {
+    default { set hosttype "host_type" }
+}
+
+# Gather root password, grsec password, and needed jumpserver.
+# set pwvar1 [ get_pw "servers" "root" ]
+# set pwvar2 [ get_pw "servers" "grsec" ]
+# set jumpserver [ need_jump $hostname ]
+
+# Gather passwords into their own variables
+# Indexing needs to match the order of arguments in get_pws:
+#  -p category:type:subtype
+#  -p category:type:subtype
+#  -p category:type:subtype
+#  -p category:type:subtype
+#  -p category:type:subtype
+#  -p category:type:subtype
+#  -p category:type:subtype
+
+set pws [ get_pws ]
+set pwvar1 [ lindex $pws 0 ]
+set pwvar2 [ lindex $pws 1 ]
+set pwvar3 [ lindex $pws 2 ]
+set pwvar4 [ lindex $pws 3 ]
+set pwvar5 [ lindex $pws 4 ]
+set pwvar6 [ lindex $pws 5 ]
+set pwvar7 [ lindex $pws 6 ]
+#unset pws
+
+# Check if we need to login as ourselves, or root
+set login_name [ root_login $hosttype $myusername ]
+
+# Check if this host requires gradm and su to root
+set need_root_seauth [ root_seauth $hosttype ]
+
+# if { [string match admin* "$hostname"] } {
+#     # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -p 22 -l$login_name $hostname\n"
+#     spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -p 22 -l$login_name $hostname
+# } elseif { [string match "$jumpserver" "$hostname" ] } {
+#     # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname\n"
+#     spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname
+# } elseif { [string match "$bastion" "$hostname" ] } {
+#     # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname\n"
+#     spawn /usr/bin/ssh -t -F $ssh_conf -l$login_name $hostname
+# } else {
+#     # send_user "spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -l$login_name $hostname\n"
+#     spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $bastion ssh -t -l$login_name $hostname
+# }
+
+# Expect that the ssh config properly sets RemoteCommand for hosts that need to be jumped 
+spawn /usr/bin/ssh -t -F $ssh_conf -l$myusername $hostname
+
+# The Login portion and the error traps
+expect {
+    -re "The authenticity of host.*yes/no.*" { send -- "yes\r"; exp_continue }
+    -re "Connection refused" {  send_user -- "Connection refused\n"; exit }
+#    -re "Permission denied" {  send_user -- "Permission denied\n"; exit }
+    -re "Operation timed out" {  send_user -- "SSH connection timed out\n"; exit }
+    -re "No route to host" {  send_user -- "No Route to host\n"; exit }
+    -re "Could not resolve" {  send_user -- "Unknown hostname\n"; exit }
+    -re "Name or service not known" {  send_user -- "Unknown hostname\n"; exit }
+    -re "forward host lookup failed" {  send_user -- "Unknown hostname\n"; exit }
+    -re "administratively prohibited" {  send_user -- "hostname blocked from assigned jumpserver\n"; exit }
+    -re "authentication fail" {  send_user -- "Wrong Password or wrong username (tried $myusername)\n"; exit }
+    -re "WARNING: REMOTE HOST IDENTIFICATION" { send_user -- "Key Verification Failed, remove key from known_hosts\n"; exit }
+    -re "Authenticated with partial.*$hostname.*password" {
+        send_user -- "Using password\r\n"
+        send -- "$pwvar4\r"
+    }
+    -re "$myusername@$hostname.*password" {
+        send_user -- "Using password\r\n"
+        send -- "$pwvar4\r"
+    }
+    -re "$hostname:" { send -- "\r" }
+    -re "$hostname" { send -- "\r" }
+    -re "assword: " {
+        # send my pw if logging in as me, else send root's
+        if { [string compare $hosttype "somehost"] == 0 } {
+            set this_pw [ get_pw "category" $myusername ]
+        } elseif { [string compare $login_name $myusername] == 0 } {
+            set this_pw [ get_pw "category" $myusername]
+        } else {
+            set this_pw $pwvar1
+        }
+        send -- "$this_pw\r"
+    }
+}
+
+# send_user -- "We've logged in... time to elevate..."
+# send root and grsec pasword if needed
+if { $need_root_seauth == 1 } {
+    if { [string compare $login_name $myusername] == 0 } {
+        set su_args [ get_su_args $hostname ]
+        expect {
+            -re "assword: " {
+                send -- "$pwvar4\r"
+                expect -re {(\$|#) }
+                send -- "su $su_args\r"
+                expect "assword: "
+                send -- "$pwvar1\r"
+            }
+            -re {(\$|#) } {
+                send -- "su $su_args\r"
+                expect "assword: "
+                send -- "$pwvar1\r"
+            }
+        }
+    }
+    expect -re "$prompt" { send -- "seauth -a admin\r" }
+
+    expect {
+        "assword: " { send "$pwvar2\r" }
+        -re {.*not.*} { send_user -- "Security enhancement disabled, or not installed"; send "\r" }
+    }
+} elseif { $need_root_seauth == 3 } {
+    expect {
+        -re "assword: " {
+            send_user -- "Prompted for login password"
+            send -- "$pwvar4\r"
+        }
+        -re {(\$|#) } {
+            send -- "sudo -Hi\r"
+            expect {
+                "assword for $myusername: " { send -- "$pwvar4\r"; }
+                "$prompt" { send -- "\r"; }
+            }
+        }
+    }
+    expect -re "$prompt" { send -- "seauth -p $myusername\r" }
+
+    expect {
+        "assword: " { send -- "$pwvar4\r" }
+        -re {.*not.*} { send_user -- "Security enhancement disabled, or not installed"; send "\r" }
+    }
+}
+
+# load custom bashrc if su to root used
+if { [string compare $login_name $myusername] == 0 && [string compare $hosttype "bigip"] != 0 && [ regexp {^$} $clicmd match ] !=0 } {
+    expect -re "$prompt|$hostname" { send -- ". /home/logins/$myusername/.bashrc\r" }
+} else {
+    expect -re "$prompt|$hostname" { send -- "\r" }
+}
+
+set time_out 1
+
+# send root or grsec pw with the listed keystrokes
+expect -re "$prompt|$hostname" {
+    # send -- "stty rows $rows columns $cols\r"
+    send_user -- "If you need __notes, just use them\r\n"
+    set tty_info [ get_stty ]
+    send -- "$tty_info\r"
+    if { $need_root_seauth == 1 } {
+        interact {
+            ~~g {send_user "Sent seauth password"; send -- "$pwvar2\r"}
+            ~~r {send_user "Sent superuser password"; send -- "$pwvar1\r"}
+            ~~l {send_user "Sent your password"; send -- "$pwvar4\r"}
+            ~~a {send_user "Sent admin password"; send -- "$pwvar3\r"}
+            ~~d {send_user "Sent database password"; send -- "$pwvar5\r"}
+            ~~m {send_user "Sent your password"; send -- "$pwvar7\r"}
+            ~~q {send_user "Sent super password"; send -- "$pwvar6\r"}
+            ~~h {send_user "Options are ~~g, ~~r, ~~l, ~~a, ~~d, ~~m, ~~q"}
+            ~~s {set tty_info [ get_stty ]; send_user "\r\nUpdating tty settings\r\n"; send -- "$tty_info\r"}
+        }
+    } elseif { $need_root_seauth == 3 } {
+        interact {
+            ~~g {send_user "Sent seauth password"; send -- "$pwvar2\r"}
+            ~~r {send_user "Sent superuser password"; send -- "$pwvar1\r"}
+            ~~l {send_user "Sent your password"; send -- "$pwvar4\r"}
+            ~~a {send_user "Sent admin password"; send -- "$pwvar3\r"}
+            ~~d {send_user "Sent database password"; send -- "$pwvar5\r"}
+            ~~m {send_user "Sent your password"; send -- "$pwvar7\r"}
+            ~~q {send_user "Sent super password"; send -- "$pwvar6\r"}
+            ~~h {send_user "Options are ~~g, ~~r, ~~l, ~~a, ~~d, ~~m, ~~q"}
+            ~~s {set tty_info [ get_stty ]; send_user "\r\nUpdating tty settings\r\n"; send -- "$tty_info\r"}
+        }
+    } else {
+        interact
+    }
+}
